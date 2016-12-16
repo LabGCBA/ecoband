@@ -59,6 +59,7 @@
     <Compile Include="Band.cs" />
     <Compile Include="Service.cs" />
     <Compile Include="Characteristic.cs" />
+    <Compile Include="Properties.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
