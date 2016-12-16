@@ -1,15 +1,13 @@
 ﻿using System;
-namespace EcoBand
-{
-	public class Service
-	{
-		public Service(String Label, String Uuint)
-		{
-			label = Label;
-			uuint = Uuint;
-		}
 
-		public String label { get; }
-		public String uuint { get; }
-	}
+namespace EcoBand {
+    public class Service {
+        public Service(String label, String uuint) {
+            Label = label;
+            Uuint = uuint;
+        }
+
+        public String Label { get; }
+        public String Uuint { get; }
+    }
 }
