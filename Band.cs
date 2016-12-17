@@ -5,19 +5,17 @@ using Plugin.BLE.Abstractions.Contracts;
 namespace EcoBand {
     public class Band {
         public Band(IDevice device) {
-            _device = device;
-
-            Name = device.Name;
-            Uuid = device.Id;
+            Device = device;
         }
+
 
         /**************************************************************************
 
-            Internal properties
+            Public readonly properties
          
          **************************************************************************/
 
-        private readonly IDevice _device;
+        public readonly IDevice Device;
 
 
         /**************************************************************************
@@ -25,9 +23,6 @@ namespace EcoBand {
             Getters/Setters
          
          **************************************************************************/
-
-        public String Name { get; }
-        public Guid Uuid { get; }
 
         public List<Service> Services { get; set; }
         public List<Characteristic> Characteristics { get; set; }
