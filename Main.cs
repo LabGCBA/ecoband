@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Android.App;
@@ -19,6 +20,7 @@ namespace EcoBand {
     public class Main : Activity {
         public Main() {
             _ble = CrossBluetoothLE.Current;
+            _devices = new List<IDevice>();
 
             _ble.StateChanged += OnStateChanged;
             _adapter.DeviceDiscovered += OnDeviceDiscovered;
@@ -37,6 +39,7 @@ namespace EcoBand {
         private readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter;
         private IBluetoothLE _ble;
         private Button _connectButton;
+        private List<IDevice> _devices;
         private const string _deviceIdKey = "DeviceIdNavigationKey";
         private const string _serviceIdKey = "ServiceIdNavigationKey";
         private const string _characteristicIdKey = "CharacteristicIdNavigationKey";
@@ -45,29 +48,7 @@ namespace EcoBand {
 
         /**************************************************************************
 
-            Protected methods
-         
-         **************************************************************************/
-
-        protected override void OnCreate(Bundle bundle) {
-            base.OnCreate(bundle);
-
-            // LayoutInflater inflater = Application.Context.GetSystemService(Context.LayoutInflaterService) as LayoutInflater;
-            // View layout = inflater.Inflate(Resource.Layout.Main, null);
-
-            // Set our view from the "main" layout resource
-            SetContentView(Resource.Layout.Main);
-
-            // Get our button from the layout resource,
-            // and attach an event to it
-            _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
-            _connectButton.Click += OnConnectButtonClick;
-        }
-
-
-        /**************************************************************************
-
-            Private methods
+            Event handlers
          
          **************************************************************************/
 
@@ -95,12 +76,45 @@ namespace EcoBand {
             // TODO: Implement
         }
 
+
+        /**************************************************************************
+
+            Private methods
+         
+         **************************************************************************/
+
         private async Task Discover() {
             // TODO: Implement
         }
 
         private async Task Connect(IDevice device) {
             // TODO: Implement
+        }
+
+        private async Task Disconnect(IDevice device) {
+            // TODO: Implement
+        }
+
+
+        /**************************************************************************
+
+            Protected methods
+         
+         **************************************************************************/
+
+        protected override void OnCreate(Bundle bundle) {
+            base.OnCreate(bundle);
+
+            // LayoutInflater inflater = Application.Context.GetSystemService(Context.LayoutInflaterService) as LayoutInflater;
+            // View layout = inflater.Inflate(Resource.Layout.Main, null);
+
+            // Set our view from the "main" layout resource
+            SetContentView(Resource.Layout.Main);
+
+            // Get our button from the layout resource,
+            // and attach an event to it
+            _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
+            _connectButton.Click += OnConnectButtonClick;
         }
     }
 }
