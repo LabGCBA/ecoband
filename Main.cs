@@ -28,11 +28,11 @@ namespace EcoBand {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
             _devices = new List<Band>();
-            _state = BluetoothState.Off;
 
             _ble.StateChanged += OnStateChanged;
-            _adapter.DeviceDiscovered += OnDeviceDiscovered;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
+            _adapter.DeviceConnected += OnDeviceConnected;
+            _adapter.DeviceDiscovered += OnDeviceDiscovered;
             _adapter.DeviceDisconnected += OnDeviceDisconnected;
             _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
         }
@@ -50,7 +50,7 @@ namespace EcoBand {
         private List<Band> _devices;
         private BluetoothState _state;
         private CancellationTokenSource _cancellationTokenSource;
-        private readonly IUserDialogs _userDialogs;
+        private IUserDialogs _userDialogs;
         private const string _deviceIdKey = "DeviceIdNavigationKey";
         private const string _serviceIdKey = "ServiceIdNavigationKey";
         private const string _characteristicIdKey = "CharacteristicIdNavigationKey";
@@ -66,29 +66,40 @@ namespace EcoBand {
         private void OnConnectButtonClick(object sender, EventArgs e) {
             Discover();
 
-            _connectButton.Text = "Buscando...";
+            Console.WriteLine("Clicked Connect button");
             // TODO: Implement
         }
 
         private void OnStateChanged(object sender, BluetoothStateChangedArgs e) {
-            // TODO: Log state change
+            Console.WriteLine($"##### State changed to {e.NewState.ToString()}");
             _state = e.NewState;
         }
 
         private void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
-            // TODO: Implement
+            // TODO: Implement. Show modal, updating items in real time.
+            Console.WriteLine($"##### Discovered device {args.Device.Name}");
+        }
+
+        private void OnDeviceConnected(object sender, DeviceEventArgs args) {
+            // TODO: Implement. Hide modal and get needed services and characteristics, show data in UI.
+            Console.WriteLine($"##### Connected to device {args.Device.Name}");
         }
 
         private void OnScanTimeoutElapsed(object sender, EventArgs e) {
             // TODO: Implement
+            _adapter.StopScanningForDevicesAsync();
+            _connectButton.Text = "Conectar";
+            _userDialogs.Toast("No se encontraron dispositivos");
         }
 
         private void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
             // TODO: Implement
+            Console.WriteLine($"##### Disconnected from device {e.Device.Name}");
         }
 
         private void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
             // TODO: Implement
+            Console.WriteLine($"##### Device {e.Device.Name} disconnected :(");
         }
 
 
@@ -99,10 +110,18 @@ namespace EcoBand {
          **************************************************************************/
 
         private async Task Discover() {
-            if (_state == BluetoothState.On) {
+            Console.WriteLine("##### Inside Discover()");
+
+            if (_ble.IsOn) {
                 if (_adapter.IsScanning) return;
 
+                _connectButton.Text = "Buscando...";
+                _cancellationTokenSource = new CancellationTokenSource();
                 _devices.Clear();
+
+                Console.WriteLine("##### Beginning scan...");
+
+                await _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
 
                 foreach (var device in _adapter.ConnectedDevices) {
                     //update rssi for already connected devices (so the 0 is not shown in the list)
@@ -111,35 +130,41 @@ namespace EcoBand {
                         // TODO: Check if rssi was really updated
                     }
                     catch (Exception ex) {
-                        _userDialogs.ShowError($"Failed to update RSSI for {device.Name}\n Error: {ex.Message}");
-                    }
-
-                    if (!_devices.Any(item => item.Device == device)) {
-                        // TODO: Limit connection to actual Mi Bands
-                        _devices.Add(new Band(device));
+                        _userDialogs.ShowError($"Falló actualización de RSSI de {device.Name}\nError: {ex.Message}");
                     }
                 }
 
-                _cancellationTokenSource = new CancellationTokenSource();
-                _adapter.StopScanningForDevicesAsync();
-                _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
+                foreach (var device in _adapter.DiscoveredDevices) {
+                    if (!_devices.Any(item => item.Device == device)) {
+                        // TODO: Limit connection to actual Mi Bands
+                        _devices.Add(new Band(device));
+
+                        Console.WriteLine($"##### Added device {device.Name} to the list");
+                    }
+                }
+            }
+            else {
+                _userDialogs.Toast("Bluetooth está desactivado");
+
+                Console.WriteLine("##### Bluetooth is not on :(");
             }
         }
 
         private async Task Connect(Band device) {
+            await _adapter.StopScanningForDevicesAsync();
             // TODO: Implement
         }
 
         private async Task Disconnect(Band band) {
-            try {
-                if (band.Device.State != DeviceState.Connected) return;
+            if (band.Device.State != DeviceState.Connected) return;
 
-                _userDialogs.ShowLoading($"Disconnecting {band.Device.Name}...");
+            try {
+                _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
 
                 await _adapter.DisconnectDeviceAsync(band.Device);
             }
             catch (Exception ex) {
-                _userDialogs.Alert(ex.Message, "Disconnect error");
+                _userDialogs.Alert(ex.Message, $"Error al desconectarse de {band.Device.Name}");
             }
             finally {
                 _userDialogs.HideLoading();
@@ -161,7 +186,9 @@ namespace EcoBand {
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
+            UserDialogs.Init(this);
 
+            _userDialogs = UserDialogs.Instance;
             // Get our button from the layout resource,
             // and attach an event to it
             _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
