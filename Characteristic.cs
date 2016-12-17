@@ -6,16 +6,11 @@ namespace EcoBand {
         public Characteristic(String label, String uuint) {
             Label = label;
             Uuint = uuint;
+            Properties = new List<Properties>();
         }
-
-        private List<Properties> _properties = new List<Properties>();
 
         public String Label { get; }
         public String Uuint { get; }
-        public List<Properties> Properties { 
-            get {
-                return _properties;
-            } 
-        }
+        public List<Properties> Properties { get; }
     }
 }

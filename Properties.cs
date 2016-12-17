@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace EcoBand {
+﻿namespace EcoBand {
     public enum Properties {
         Read,
         Notify,

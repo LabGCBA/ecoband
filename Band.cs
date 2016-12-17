@@ -1,33 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
-using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 
 namespace EcoBand {
     public class Band {
-        public Band(IAdapter adapter) {
-            Adapter = adapter;
+        public Band(IDevice device) {
+            _device = device;
+
+            Name = device.Name;
+            Uuid = device.Id;
         }
 
-        protected readonly IAdapter Adapter;
-        protected const string DeviceIdKey = "DeviceIdNavigationKey";
-        protected const string ServiceIdKey = "ServiceIdNavigationKey";
-        protected const string CharacteristicIdKey = "CharacteristicIdNavigationKey";
-        protected const string DescriptorIdKey = "DescriptorIdNavigationKey";
+        /**************************************************************************
 
-        private List<Service> _services = new List<Service>();
-        private List<Characteristic> _characteristics = new List<Characteristic>();
+            Internal properties
+         
+         **************************************************************************/
 
-        public List<Service> Services {
-            get {
-                return _services;
-            }
+        private readonly IDevice _device;
+
+
+        /**************************************************************************
+
+            Getters/Setters
+         
+         **************************************************************************/
+
+        public String Name { get; }
+        public Guid Uuid { get; }
+
+        public List<Service> Services { get; set; }
+        public List<Characteristic> Characteristics { get; set; }
+
+
+        /**************************************************************************
+
+            Public methods
+         
+         **************************************************************************/
+
+        public Service getService(Guid uuid) {
+            return new Service("Test", "Test"); // TODO: Implement
         }
 
-        public List<Characteristic> Characteristics {
-            get {
-                return _characteristics;
-            }
+        public Characteristic getCharacteristic(Guid uuid, Service service) {
+            return new Characteristic("Test", "Test"); // TODO: Implement
         }
     }
 }
