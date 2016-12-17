@@ -36,6 +36,7 @@ namespace EcoBand {
 
         private readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter;
         private IBluetoothLE _ble;
+        private Button _connectButton;
         private const string _deviceIdKey = "DeviceIdNavigationKey";
         private const string _serviceIdKey = "ServiceIdNavigationKey";
         private const string _characteristicIdKey = "CharacteristicIdNavigationKey";
@@ -59,11 +60,8 @@ namespace EcoBand {
 
             // Get our button from the layout resource,
             // and attach an event to it
-            Button button = FindViewById<Button>(Resource.Id.btnConnect);
-
-            button.Click += delegate {
-                // Complete
-            };
+            _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
+            _connectButton.Click += OnConnectButtonClick;
         }
 
 
@@ -73,32 +71,36 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        private void OnStateChanged(object sender, BluetoothStateChangedArgs e) {
+        private void OnConnectButtonClick(object sender, EventArgs e) {
+            // TODO: Implement
+        }
 
+        private void OnStateChanged(object sender, BluetoothStateChangedArgs e) {
+            // TODO: Implement
         }
 
         private void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
-
+            // TODO: Implement
         }
 
         private void OnScanTimeoutElapsed(object sender, EventArgs e) {
-
+            // TODO: Implement
         }
 
         private void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
-
+            // TODO: Implement
         }
 
         private void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
-
+            // TODO: Implement
         }
 
         private async Task Discover() {
-
+            // TODO: Implement
         }
 
         private async Task Connect(IDevice device) {
-
+            // TODO: Implement
         }
     }
 }
