@@ -20,6 +20,7 @@ namespace EcoBand {
     public class Main : Activity {
         public Main() {
             _ble = CrossBluetoothLE.Current;
+            _adapter = CrossBluetoothLE.Current.Adapter;
             _devices = new List<IDevice>();
 
             _ble.StateChanged += OnStateChanged;
