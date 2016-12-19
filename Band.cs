@@ -17,15 +17,14 @@ namespace EcoBand {
 
         public readonly IDevice Device;
 
-
         /**************************************************************************
 
             Getters/Setters
          
          **************************************************************************/
 
-        public List<Service> Services { get; set; }
-        public List<Characteristic> Characteristics { get; set; }
+        public List<Service> Services { get; }
+        public List<Characteristic> Characteristics { get; }
 
 
         /**************************************************************************
