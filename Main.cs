@@ -22,15 +22,12 @@ using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
 
 namespace EcoBand {
-    [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Label = "Mi Band", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
 
     public class Main : Activity {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
-            _nativeAdapter = BluetoothAdapter.DefaultAdapter;
-            _devices = new List<Band>();
-            _nativeConnections = new List<BluetoothDevice>();
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -49,17 +46,10 @@ namespace EcoBand {
 
         private readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter;
         private readonly IBluetoothLE _ble;
-        private readonly BluetoothAdapter _nativeAdapter;
-        private List<BluetoothDevice> _nativeConnections;
+        private Band _device;
         private Button _connectButton;
-        private List<Band> _devices;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
-        private ActionSheetConfig _devicesModal = new ActionSheetConfig();
-        private const string _deviceIdKey = "DeviceIdNavigationKey";
-        private const string _serviceIdKey = "ServiceIdNavigationKey";
-        private const string _characteristicIdKey = "CharacteristicIdNavigationKey";
-        private const string _descriptorIdKey = "DescriptorIdNavigationKey";
         private const int _requestEnableBluetooth = 2;
 
 
@@ -75,6 +65,8 @@ namespace EcoBand {
                 StartActivityForResult(enableIntent, _requestEnableBluetooth);
             }
 
+            List<IDevice> systemDevices = _adapter.GetSystemConnectedOrPairedDevices();
+
             Discover();
 
             Console.WriteLine("##### Clicked Connect button");
@@ -84,70 +76,40 @@ namespace EcoBand {
             Console.WriteLine($"##### State changed to {e.NewState.ToString()}");
         }
 
-        private void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
-            // TODO: Implement. Add device to modal.
+        private async void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
+            if (Band.NAME_FILTER.Contains(args.Device.Name) && 
+                Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) args.Device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
+                Console.WriteLine($"##### Discovered device {args.Device.Name}");
 
-            Console.WriteLine($"##### Discovered device {args.Device.Name}");
-            Console.WriteLine($"##### Number of options in modal: {_devicesModal.Options.Count}");
+                await StopScanning();
+                await Connect(new Band(args.Device));
+            }
         }
 
         private void OnDeviceConnected(object sender, DeviceEventArgs args) {
-            _devicesModal.Options = new List<ActionSheetOption>();
-
             // TODO: Implement. Get needed services and characteristics, show data in UI.
 
             Console.WriteLine($"##### Connected to device {args.Device.Name}");
         }
 
         private async void OnScanTimeoutElapsed(object sender, EventArgs e) {
-            stopScanning();
+            await StopScanning();
 
             Console.WriteLine($"##### Scan timeout elapsed");
+            Console.WriteLine($"##### No devices found");
 
-            if (_adapter.DiscoveredDevices.Count == 0) {
-                _userDialogs.Toast("No se encontraron dispositivos");
-
-                Console.WriteLine($"##### No devices found");
-            }
-            else {
-                List<ActionSheetOption> options = new List<ActionSheetOption>();
-
-                foreach (var device in _adapter.ConnectedDevices) {
-                    //update rssi for already connected devices (so the 0 is not shown in the list)
-                    try {
-                        await device.UpdateRssiAsync();
-                        // TODO: Check if rssi was really updated
-                    }
-                    catch (Exception ex) {
-                        _userDialogs.ShowError($"Falló actualización de RSSI de {device.Name}\nError: {ex.Message}");
-                    }
-                }
-
-                foreach (var device in _adapter.DiscoveredDevices) {
-                    if (!_devices.Any(item => item.Device == device)) {
-                        // TODO: Limit connection to actual Mi Bands
-                        _devices.Add(new Band(device));
-                        options.Add(new ActionSheetOption("Desconocido"));
-
-                        Console.WriteLine($"##### Added device {device.Name} to the list");
-                    }
-                }
-
-                _userDialogs.HideLoading();
-                _devicesModal.Cancel = new ActionSheetOption("Cancelar", stopScanning);
-                _devicesModal.Options = options;
-                _devicesModal.UseBottomSheet = true;
-                _userDialogs.ActionSheet(_devicesModal);
-            }
+            _userDialogs.Toast("No se pudo encontrar una Mi Band.\nIntenta de nuevo");
         }
 
         private void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
-            // TODO: Implement
+            _device = null;
+
             Console.WriteLine($"##### Disconnected from device {e.Device.Name}");
         }
 
         private void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
-            // TODO: Implement
+            _device = null;
+
             Console.WriteLine($"##### Device {e.Device.Name} disconnected :(");
         }
 
@@ -158,11 +120,27 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        private void stopScanning() { 
-            _adapter.StopScanningForDevicesAsync();
-            _connectButton.Text = "Conectar";
+        private async Task StopScanning() {
+            try {
+                await _adapter.StopScanningForDevicesAsync();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### StopScanning() failed :( with error: {ex.Message}");
+
+                return;
+            }
+            finally {
+                CleanupCancellationToken();
+            }
 
             Console.WriteLine("##### Stopped scanning");
+        }
+
+        private void CleanupCancellationToken() {
+            if (_cancellationTokenSource != null) { 
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
         }
 
         private void Discover() {
@@ -171,9 +149,7 @@ namespace EcoBand {
 
                 if (_adapter.IsScanning) return;
 
-                _connectButton.Text = "Buscando...";
                 _cancellationTokenSource = new CancellationTokenSource();
-                _devices.Clear();
 
                 Console.WriteLine("##### Beginning scan...");
 
@@ -187,14 +163,34 @@ namespace EcoBand {
             }
         }
 
-        private async Task Connect(Band device) {
-            await _adapter.StopScanningForDevicesAsync();
-            // TODO: Implement
+        private async Task Connect(Band band) {
+            try {
+                using (band.Device) {
+                    await _adapter.ConnectToDeviceAsync(band.Device);
+
+                    IService mainService = await band.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
+
+                    ICharacteristic steps = await mainService.GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
+
+                    Byte[] stepsValue = await steps.ReadAsync();
+
+                    _userDialogs.Alert("Steps", Convert.ToInt32(stepsValue[0]).ToString());
+                }
+            }
+            catch (Exception ex) {
+                _userDialogs.Alert(ex.Message, "Falló la conexión con Mi Band.");
+
+                return;
+            }
+            finally { 
+                _userDialogs.HideLoading();
+            }
+
+            _device = band;
+            _userDialogs.ShowSuccess("Conectado a Mi Band");
         }
 
         private async Task Disconnect(Band band) {
-            if (band.Device.State != DeviceState.Connected) return;
-
             try {
                 _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
 
@@ -202,6 +198,8 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 _userDialogs.Alert(ex.Message, $"Error al desconectarse de {band.Device.Name}");
+
+                return;
             }
             finally {
                 _userDialogs.HideLoading();
@@ -215,8 +213,8 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        protected override void OnCreate(Bundle bundle) {
-            base.OnCreate(bundle);
+        protected override void OnCreate(Bundle savedInstanceState) {
+            base.OnCreate(savedInstanceState);
 
             // LayoutInflater inflater = Application.Context.GetSystemService(Context.LayoutInflaterService) as LayoutInflater;
             // View layout = inflater.Inflate(Resource.Layout.Main, null);
