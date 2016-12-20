@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using Plugin.BLE.Abstractions.Contracts;
 
@@ -8,12 +9,12 @@ namespace EcoBand {
             Device = device;
         }
 
+
         /**************************************************************************
 
             Static properties
          
          **************************************************************************/
-
 
         public static readonly List<string> NAME_FILTER = new List<string>() {
             "MI",
@@ -25,6 +26,7 @@ namespace EcoBand {
             "88:0F:10",
             "C8:0F:10"
         };
+
 
         /**************************************************************************
 
@@ -140,6 +142,9 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
 
+        private IService _mainService;
+
+
         /**************************************************************************
 
             Getters/Setters
@@ -148,6 +153,8 @@ namespace EcoBand {
 
         public List<Service> Services { get; }
         public List<Characteristic> Characteristics { get; }
+        public IService MainService { get { return _mainService; } }
+        public IService HeartRateService;
 
 
         /**************************************************************************
@@ -162,6 +169,10 @@ namespace EcoBand {
 
         public Characteristic getCharacteristic(Guid uuid, Service service) {
             return new Characteristic("Test", "Test"); // TODO: Implement
+        }
+
+        public async Task GetServices() {
+            _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
         }
     }
 }

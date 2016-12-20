@@ -95,6 +95,7 @@
     <Compile Include="Characteristic.cs" />
     <Compile Include="Properties.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
+    <Compile Include="AsyncHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
