@@ -86,45 +86,17 @@ namespace EcoBand {
             }
         }
 
-        private async void OnDeviceConnected(object sender, DeviceEventArgs args) {
+        private void OnDeviceConnected(object sender, DeviceEventArgs args) {
             // TODO: Implement. Get needed services and characteristics, show data in UI.
 
             Console.WriteLine($"##### Connected to device {args.Device.Name}");
-
-            IService service;
-            ICharacteristic steps;
-            IDescriptor enableNotifications;
-            Byte[] stepsValue;
-
-            _device = new Band(args.Device);
-
-            service = await args.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-
-            steps = await ((IService)service).GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-
-            enableNotifications = await steps.GetDescriptorAsync(Guid.Parse("00002902-0000-1000-8000-00805f9b34fb"));
-
-            await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
-
-            stepsValue = await steps.ReadAsync();
-
-            Console.WriteLine($"##### STEPS: {Convert.ToInt32(stepsValue[0]).ToString()}");
-
-            steps.ValueUpdated += (o, arguments) => {
-                stepsValue = arguments.Characteristic.Value;
-
-                Console.WriteLine($"##### STEPS UPDATED: {Convert.ToInt32(stepsValue[0]).ToString()}");
-                _userDialogs.Alert("Steps", Convert.ToInt32(stepsValue[0]).ToString());
-            };
-
-            await steps.StartUpdatesAsync();
         }
 
         private async void OnScanTimeoutElapsed(object sender, EventArgs e) {
             await StopScanning();
 
-            Console.WriteLine($"##### Scan timeout elapsed");
-            Console.WriteLine($"##### No devices found");
+            Console.WriteLine("##### Scan timeout elapsed");
+            Console.WriteLine("##### No devices found");
 
             _userDialogs.Toast("No se pudo encontrar una Mi Band.\nIntenta de nuevo");
         }
@@ -194,15 +166,15 @@ namespace EcoBand {
         private async Task Connect(Band band) {
             try {
                 using (band.Device) {
-                    await _adapter.ConnectToDeviceAsync(band.Device);
+                    await _adapter.ConnectToDeviceAsync(band.Device, true);
 
                     IService mainService = await band.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-
                     ICharacteristic steps = await mainService.GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-
                     Byte[] stepsValue = await steps.ReadAsync();
 
-                    _userDialogs.Alert("Steps", Convert.ToInt32(stepsValue[0]).ToString());
+                    int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+
+                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
                 }
             }
             catch (Exception ex) {
@@ -243,9 +215,45 @@ namespace EcoBand {
             Console.WriteLine($"##### _device BondState: {native.BondState}");
 
 
-
-
             await _adapter.ConnectToDeviceAsync(_device.Device);
+
+
+            IService service;
+            ICharacteristic steps;
+            IDescriptor enableNotifications;
+            Byte[] stepsValue;
+
+            _device = new Band(_device.Device);
+
+            try {
+                Console.WriteLine("##### Trying to get steps...");
+
+                service = await _device.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
+                steps = await ((IService) service).GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
+                enableNotifications = await steps.GetDescriptorAsync(Guid.Parse("00002902-0000-1000-8000-00805f9b34fb"));
+
+                await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
+
+                stepsValue = await steps.ReadAsync();
+
+                int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+
+                Console.WriteLine($"##### STEPS: {stepsValueConverted}");
+
+                steps.ValueUpdated += (o, arguments) => {
+                    stepsValue = arguments.Characteristic.Value;
+
+                    stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+
+                    Console.WriteLine($"##### STEPS UPDATED: {stepsValueConverted}");
+                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
+                };
+
+                await steps.StartUpdatesAsync();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error: {ex.Message}");
+            }
         }
 
 
@@ -287,7 +295,7 @@ namespace EcoBand {
                 }
 
                 if (!foundDevice) {
-                    Console.WriteLine("##### Band is not paired already, trying to connect...");
+                    Console.WriteLine("##### Band is not paired");
 
                     return;
                 }
@@ -302,6 +310,7 @@ namespace EcoBand {
                     }
                 }
             }
+            else Console.WriteLine("##### Band is not paired");
         }
     }
 }
