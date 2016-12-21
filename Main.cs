@@ -97,12 +97,15 @@ namespace EcoBand {
 
                 await StopScanning();
                 await Connect(new Band(args.Device));
+
+                BluetoothDevice native = (BluetoothDevice) _device.Device.NativeDevice;
+                native.CreateBond();
+
+                GetData().NoAwait(); // TODO: Refactor
             }
         }
 
         private void OnDeviceConnected(object sender, DeviceEventArgs args) {
-            // TODO: Implement. Get needed services and characteristics, show data in UI.
-
             Console.WriteLine($"##### Connected to device {args.Device.Name}");
         }
 
@@ -180,15 +183,7 @@ namespace EcoBand {
         private async Task Connect(Band band) {
             try {
                 using (band.Device) {
-                    await _adapter.ConnectToDeviceAsync(band.Device, true);
-
-                    IService mainService = await band.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-                    ICharacteristic steps = await mainService.GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-                    Byte[] stepsValue = await steps.ReadAsync();
-
-                    int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
-
-                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
+                    await _adapter.ConnectToDeviceAsync(band.Device);
                 }
             }
             catch (Exception ex) {
@@ -233,28 +228,32 @@ namespace EcoBand {
             try {
                 Console.WriteLine("##### Trying to get steps...");
 
-                service = await _device.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-                steps = await ((IService) service).GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-                enableNotifications = await steps.GetDescriptorAsync(Guid.Parse("00002902-0000-1000-8000-00805f9b34fb"));
+                service = await _device.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb")); // TODO: If service is null, retry (max 3 times);
 
-                await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
+                if (service != null) {
+                    steps = await ((IService) service).GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
+                    enableNotifications = await steps.GetDescriptorAsync(Guid.Parse("00002902-0000-1000-8000-00805f9b34fb"));
 
-                stepsValue = await steps.ReadAsync();
+                    await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
 
-                int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+                    stepsValue = await steps.ReadAsync();
 
-                Console.WriteLine($"##### STEPS: {stepsValueConverted}");
+                    int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
 
-                steps.ValueUpdated += (o, arguments) => {
-                    stepsValue = arguments.Characteristic.Value;
+                    Console.WriteLine($"##### STEPS: {stepsValueConverted}");
 
-                    stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+                    steps.ValueUpdated += (o, arguments) => {
+                        stepsValue = arguments.Characteristic.Value;
 
-                    Console.WriteLine($"##### STEPS UPDATED: {stepsValueConverted}");
-                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
-                };
+                        stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
 
-                await steps.StartUpdatesAsync();
+                        Console.WriteLine($"##### STEPS UPDATED: {stepsValueConverted}");
+                        _userDialogs.Alert("Steps", stepsValueConverted.ToString());
+                    };
+
+                    await steps.StartUpdatesAsync();
+                }
+                else Console.WriteLine("##### SERVICE IS NULL");
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
