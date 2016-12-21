@@ -37,6 +37,10 @@ namespace EcoBand {
             _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
         }
 
+        ~Main() {
+            CleanupCancellationToken();
+        }
+
 
         /**************************************************************************
 
@@ -60,16 +64,26 @@ namespace EcoBand {
          **************************************************************************/
 
         private void OnConnectButtonClick(object sender, EventArgs e) {
+            Console.WriteLine("##### Clicked Connect button");
+
             if (!_ble.IsOn) {
                 Intent enableIntent = new Intent(BluetoothAdapter.ActionRequestEnable);
                 StartActivityForResult(enableIntent, _requestEnableBluetooth);
             }
 
-            List<IDevice> systemDevices = _adapter.GetSystemConnectedOrPairedDevices();
+            if (isPaired()) {
+                try {
+                    GetData().NoAwait();
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"##### Error: {ex.Message}");
+                }
+            }
+            else { 
+                Console.WriteLine("##### Band is not paired");
 
-            Discover();
-
-            Console.WriteLine("##### Clicked Connect button");
+                Discover();
+            }
         }
 
         private void OnStateChanged(object sender, BluetoothStateChangedArgs e) {
@@ -207,21 +221,12 @@ namespace EcoBand {
         }
 
         private async Task GetData() {
-            Console.WriteLine("##### INSIDE GET DATA");
-            Console.WriteLine($"##### _device name: {_device.Device.Name}");
-
-            BluetoothDevice native = (BluetoothDevice) _device.Device.NativeDevice;
-
-            Console.WriteLine($"##### _device BondState: {native.BondState}");
-
-
-            await _adapter.ConnectToDeviceAsync(_device.Device);
-
-
             IService service;
             ICharacteristic steps;
             IDescriptor enableNotifications;
             Byte[] stepsValue;
+
+            await _adapter.ConnectToDeviceAsync(_device.Device);
 
             _device = new Band(_device.Device);
 
@@ -256,6 +261,32 @@ namespace EcoBand {
             }
         }
 
+        private bool isPaired() {
+            List<IDevice> pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
+            bool foundDevice = false;
+
+            if (pairedDevices.Count > 0) {
+                foreach (IDevice device in pairedDevices) {
+                    if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
+                        Console.WriteLine($"##### Paired device: {device.Name}");
+
+                        foundDevice = true;
+                        _device = new Band(device);
+                    }
+                }
+
+                if (foundDevice) {
+                    Console.WriteLine("##### Band is already paired");
+
+                    return true
+                }
+            }
+
+            Console.WriteLine("##### Band is not paired");
+
+            return false;
+        }
+
 
         /**************************************************************************
 
@@ -279,38 +310,14 @@ namespace EcoBand {
             _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
             _connectButton.Click += OnConnectButtonClick;
 
-
-
-            List<IDevice> pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
-            bool foundDevice = false;
-
-            if (pairedDevices.Count > 0) {
-                foreach (IDevice device in pairedDevices) {
-                    if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
-                        Console.WriteLine($"##### Paired device: {device.Name}");
-
-                        foundDevice = true;
-                        _device = new Band(device);
-                    }
+            if (isPaired()) {
+                try {
+                    GetData().NoAwait();
                 }
-
-                if (!foundDevice) {
-                    Console.WriteLine("##### Band is not paired");
-
-                    return;
-                }
-                else {
-                    Console.WriteLine("##### Band is already paired");
-
-                    try {
-                        GetData().NoAwait();
-                    }
-                    catch (Exception ex) {
-                        Console.WriteLine($"##### Error: {ex.Message}");
-                    }
+                catch (Exception ex) {
+                    Console.WriteLine($"##### Error: {ex.Message}");
                 }
             }
-            else Console.WriteLine("##### Band is not paired");
         }
     }
 }
