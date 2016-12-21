@@ -1062,32 +1062,32 @@ namespace EcoBand
 		public partial class Color
 		{
 			
-			// aapt resource value: 0x7f080044
-			public const int abc_background_cache_hint_selector_material_dark = 2131230788;
+			// aapt resource value: 0x7f080049
+			public const int abc_background_cache_hint_selector_material_dark = 2131230793;
 			
-			// aapt resource value: 0x7f080045
-			public const int abc_background_cache_hint_selector_material_light = 2131230789;
+			// aapt resource value: 0x7f08004a
+			public const int abc_background_cache_hint_selector_material_light = 2131230794;
 			
-			// aapt resource value: 0x7f080046
-			public const int abc_color_highlight_material = 2131230790;
+			// aapt resource value: 0x7f08004b
+			public const int abc_color_highlight_material = 2131230795;
 			
 			// aapt resource value: 0x7f08000a
 			public const int abc_input_method_navigation_guard = 2131230730;
 			
-			// aapt resource value: 0x7f080047
-			public const int abc_primary_text_disable_only_material_dark = 2131230791;
+			// aapt resource value: 0x7f08004c
+			public const int abc_primary_text_disable_only_material_dark = 2131230796;
 			
-			// aapt resource value: 0x7f080048
-			public const int abc_primary_text_disable_only_material_light = 2131230792;
+			// aapt resource value: 0x7f08004d
+			public const int abc_primary_text_disable_only_material_light = 2131230797;
 			
-			// aapt resource value: 0x7f080049
-			public const int abc_primary_text_material_dark = 2131230793;
+			// aapt resource value: 0x7f08004e
+			public const int abc_primary_text_material_dark = 2131230798;
 			
-			// aapt resource value: 0x7f08004a
-			public const int abc_primary_text_material_light = 2131230794;
+			// aapt resource value: 0x7f08004f
+			public const int abc_primary_text_material_light = 2131230799;
 			
-			// aapt resource value: 0x7f08004b
-			public const int abc_search_url_text = 2131230795;
+			// aapt resource value: 0x7f080050
+			public const int abc_search_url_text = 2131230800;
 			
 			// aapt resource value: 0x7f08000b
 			public const int abc_search_url_text_normal = 2131230731;
@@ -1098,11 +1098,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f08000d
 			public const int abc_search_url_text_selected = 2131230733;
 			
-			// aapt resource value: 0x7f08004c
-			public const int abc_secondary_text_material_dark = 2131230796;
+			// aapt resource value: 0x7f080051
+			public const int abc_secondary_text_material_dark = 2131230801;
 			
-			// aapt resource value: 0x7f08004d
-			public const int abc_secondary_text_material_light = 2131230797;
+			// aapt resource value: 0x7f080052
+			public const int abc_secondary_text_material_light = 2131230802;
 			
 			// aapt resource value: 0x7f08000e
 			public const int accent_material_dark = 2131230734;
@@ -1145,6 +1145,12 @@ namespace EcoBand
 			
 			// aapt resource value: 0x7f08001b
 			public const int button_material_light = 2131230747;
+			
+			// aapt resource value: 0x7f080048
+			public const int colorAccent = 2131230792;
+			
+			// aapt resource value: 0x7f080045
+			public const int colorPrimary = 2131230789;
 			
 			// aapt resource value: 0x7f080000
 			public const int design_fab_shadow_end_color = 2131230720;
@@ -1290,17 +1296,26 @@ namespace EcoBand
 			// aapt resource value: 0x7f080041
 			public const int switch_thumb_disabled_material_light = 2131230785;
 			
-			// aapt resource value: 0x7f08004e
-			public const int switch_thumb_material_dark = 2131230798;
+			// aapt resource value: 0x7f080053
+			public const int switch_thumb_material_dark = 2131230803;
 			
-			// aapt resource value: 0x7f08004f
-			public const int switch_thumb_material_light = 2131230799;
+			// aapt resource value: 0x7f080054
+			public const int switch_thumb_material_light = 2131230804;
 			
 			// aapt resource value: 0x7f080042
 			public const int switch_thumb_normal_material_dark = 2131230786;
 			
 			// aapt resource value: 0x7f080043
 			public const int switch_thumb_normal_material_light = 2131230787;
+			
+			// aapt resource value: 0x7f080047
+			public const int textColorBody = 2131230791;
+			
+			// aapt resource value: 0x7f080046
+			public const int textColorPrimary = 2131230790;
+			
+			// aapt resource value: 0x7f080044
+			public const int windowBackground = 2131230788;
 			
 			static Color()
 			{
@@ -3061,6 +3076,12 @@ namespace EcoBand
 			// aapt resource value: 0x7f050002
 			public const int Base_Widget_Design_TabLayout = 2131034114;
 			
+			// aapt resource value: 0x7f050158
+			public const int Button = 2131034456;
+			
+			// aapt resource value: 0x7f050157
+			public const int EcoBand = 2131034455;
+			
 			// aapt resource value: 0x7f050030
 			public const int Platform_AppCompat = 2131034160;
 			
@@ -3309,6 +3330,9 @@ namespace EcoBand
 			
 			// aapt resource value: 0x7f0500fd
 			public const int TextAppearance_Widget_AppCompat_Toolbar_Title = 2131034365;
+			
+			// aapt resource value: 0x7f050159
+			public const int TextView = 2131034457;
 			
 			// aapt resource value: 0x7f0500fe
 			public const int Theme_AppCompat = 2131034366;

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <!-- Inherit from the light Material Theme -->
+    <style name="EcoBand" parent="android:Theme.Material">
+        <!-- Override the app bar color -->
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <!-- Override the color of UI controls -->
+        <item name="android:colorAccent">@color/colorAccent</item>
+		<item name="android:textColorPrimary">@color/textColorPrimary</item>
+		<item name="android:windowBackground">@color/windowBackground</item>
+    </style>
+	<style name="Button" parent="EcoBand">
+	    <item name="backgroundTint">@color/colorAccent</item>
+	</style>
+	<style name="TextView" parent="EcoBand">
+	    <item name="android:textColor">@color/textColorBody</item>
+	</style>
+</resources>
