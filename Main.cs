@@ -182,6 +182,17 @@ namespace EcoBand {
                 using (band.Device) {
                     await _adapter.ConnectToDeviceAsync(band.Device, true);
 
+                    BluetoothDevice nativeDevice = (BluetoothDevice) band.Device.NativeDevice;
+
+                    if (nativeDevice.BondState == Bond.None) {
+                        Console.WriteLine("##### Bonding...");
+
+                        nativeDevice.CreateBond();
+                    }
+                    else { 
+                        Console.WriteLine("##### Already bonded");
+                    }
+
                     IService mainService = await band.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
                     ICharacteristic steps = await mainService.GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
                     Byte[] stepsValue = await steps.ReadAsync();
