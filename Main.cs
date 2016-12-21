@@ -278,7 +278,7 @@ namespace EcoBand {
                 if (foundDevice) {
                     Console.WriteLine("##### Band is already paired");
 
-                    return true
+                    return true;
                 }
             }
 
