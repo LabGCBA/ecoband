@@ -73,7 +73,7 @@ namespace EcoBand {
 
             if (isPaired()) {
                 try {
-                    GetData().NoAwait();
+                    Connect().NoAwait();
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"##### Error: {ex.Message}");
@@ -95,8 +95,17 @@ namespace EcoBand {
                 Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) args.Device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
                 Console.WriteLine($"##### Discovered device {args.Device.Name}");
 
-                await StopScanning();
-                await Connect(new Band(args.Device));
+                _device = new Band(args.Device);
+
+                try {
+                    await StopScanning();
+                    await Connect();
+                }
+                catch (Exception ex) { 
+                    Console.WriteLine($"##### Error: {ex.Message}");
+
+                    return;
+                }
             }
         }
 
@@ -106,8 +115,8 @@ namespace EcoBand {
             Console.WriteLine($"##### Connected to device {args.Device.Name}");
         }
 
-        private async void OnScanTimeoutElapsed(object sender, EventArgs e) {
-            await StopScanning();
+        private void OnScanTimeoutElapsed(object sender, EventArgs e) {
+            StopScanning().NoAwait();
 
             Console.WriteLine("##### Scan timeout elapsed");
             Console.WriteLine("##### No devices found");
@@ -122,9 +131,15 @@ namespace EcoBand {
         }
 
         private void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
-            _device = null;
-
             Console.WriteLine($"##### Device {e.Device.Name} disconnected :(");
+            Console.WriteLine("Trying to reconnect...");
+
+            try {
+                Connect().NoAwait();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error: {ex.Message}");
+            }
         }
 
 
@@ -177,19 +192,11 @@ namespace EcoBand {
             }
         }
 
-        private async Task Connect(Band band) {
+        private async Task Connect() {
+            BluetoothDevice nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
+
             try {
-                using (band.Device) {
-                    await _adapter.ConnectToDeviceAsync(band.Device, true);
-
-                    IService mainService = await band.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-                    ICharacteristic steps = await mainService.GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-                    Byte[] stepsValue = await steps.ReadAsync();
-
-                    int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
-
-                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
-                }
+                await _adapter.ConnectToDeviceAsync(_device.Device, true);
             }
             catch (Exception ex) {
                 _userDialogs.Alert(ex.Message, "Falló la conexión con Mi Band.");
@@ -200,7 +207,15 @@ namespace EcoBand {
                 _userDialogs.HideLoading();
             }
 
-            _device = band;
+            if (nativeDevice.BondState == Bond.None) {
+                Console.WriteLine("##### Bonding...");
+
+                nativeDevice.CreateBond();
+            }
+            else Console.WriteLine("##### Already bonded");
+
+            await GetData();
+
             _userDialogs.ShowSuccess("Conectado a Mi Band");
         }
 
@@ -225,8 +240,6 @@ namespace EcoBand {
             ICharacteristic steps;
             IDescriptor enableNotifications;
             Byte[] stepsValue;
-
-            await _adapter.ConnectToDeviceAsync(_device.Device);
 
             _device = new Band(_device.Device);
 
@@ -275,7 +288,7 @@ namespace EcoBand {
                     }
                 }
 
-                if (foundDevice) {
+                if (foundDevice && _device != null) {
                     Console.WriteLine("##### Band is already paired");
 
                     return true;
@@ -312,7 +325,7 @@ namespace EcoBand {
 
             if (isPaired()) {
                 try {
-                    GetData().NoAwait();
+                    Connect().NoAwait();
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"##### Error: {ex.Message}");
