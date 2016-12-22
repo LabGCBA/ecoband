@@ -15,7 +15,7 @@ namespace EcoBand {
         /**************************************************************************
 
             Static properties
-         
+
          **************************************************************************/
 
         public static readonly List<string> NAME_FILTER = new List<string>() {
@@ -33,7 +33,7 @@ namespace EcoBand {
         /**************************************************************************
 
             Public properties
-         
+
          **************************************************************************/
 
         public readonly IDevice Device;
@@ -42,11 +42,14 @@ namespace EcoBand {
         /**************************************************************************
 
             Private properties
-         
+
          **************************************************************************/
 
         private readonly IAdapter _adapter;
         private readonly IBluetoothLE _ble;
+        private IService _mainService;
+        private IService _heartRateService;
+
 
         // Services
         private readonly Guid UUID_SV_MAIN = Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb");
@@ -55,6 +58,7 @@ namespace EcoBand {
         private readonly Guid UUID_SV_VIBRATION = Guid.Parse("00001802-0000-1000-8000-00805f9b34fb");
         private readonly Guid UUID_SV_HEART_RATE = Guid.Parse("0000180d-0000-1000-8000-00805f9b34fb");
         private readonly Guid UUID_SV_WEIGHT = Guid.Parse("00001530-0000-3512-2118-0009af100700");
+
 
         // Characteristics
         private readonly Guid UUID_CH_DEVICE_INFO = Guid.Parse("0000ff01-0000-1000-8000-00805f9b34fb"); // read
@@ -76,10 +80,12 @@ namespace EcoBand {
         private readonly Guid UUID_CH_HEART_RATE_MEASUREMENT = Guid.Parse("00002a37-0000-1000-8000-00805f9b34fb");
         private readonly Guid UUID_CH_HEART_RATE_CONTROL_POINT = Guid.Parse("00002a39-0000-1000-8000-00805f9b34fb");
 
+
         // Descriptors
         private readonly Guid UUID_DC_NOTIFY_CHARACTERISTIC_DETECTION = Guid.Parse("00002902-0000-1000-8000-00805f9b34fb");
 
-        // Notifications to receive from UUID_CHARACTERISTIC_NOTIFICATION
+
+        // Notifications to receive from UUID_CH_NOTIFICATION
         private readonly byte NOTIFY_NORMAL = 0x0;
         private readonly byte NOTIFY_FIRMWARE_UPDATE_FAILED = 0x1;
         private readonly byte NOTIFY_FIRMWARE_UPDATE_SUCCESS = 0x2;
@@ -108,10 +114,11 @@ namespace EcoBand {
         private readonly byte NOTIFY_PAIR_CANCEL = 0xef;
         private readonly byte NOTIFY_DEVICE_MALFUNCTION = 0xff;
 
+
         // Commands to send to UUID_CH_CONTROL_POINT
-        private readonly byte CP_SET_HR_SLEEP = 0x00;
-        private readonly byte CP_SET_HR_CONTINUOUS = 0x01;
-        private readonly byte CP_SET_HR_MANUAL = 0x02;
+        private readonly byte CP_SET_HEART_RATE_SLEEP = 0x00;
+        private readonly byte CP_SET_HEART_RATE_CONTINUOUS = 0x01;
+        private readonly byte CP_SET_HEART_RATE_MANUAL = 0x02;
         private readonly byte CP_NOTIFY_REALTIME_STEPS = 0x03;
         private readonly byte CP_SET_ALARM = 0x04;
         private readonly byte CP_SET_GOAL = 0x05;
@@ -129,12 +136,18 @@ namespace EcoBand {
         private readonly byte CP_SET_THEME = 0x0E;
         private readonly byte CP_SET_WEAR_LOCATION = 0x0F;
 
+
         // Test commands to send to UUID_CH_TEST
         private readonly byte TEST_REMOTE_DISCONNECT = 0x01;
         private readonly byte TEST_SELFTEST = 0x02;
         private readonly byte TEST_NOTIFICATION = 0x03;
         private readonly byte TEST_WRITE_MD5 = 0x04;
         private readonly byte TEST_DISCONNECTED_REMINDER = 0x05;
+
+
+        // Protocols
+        private readonly byte[] PROTOCOL_START_HEART_RATE_SCAN = { 21, 2, 1 };
+
 
         // Battery status
         private readonly byte BATTERY_NORMAL = 0;
@@ -143,17 +156,20 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGING_FULL = 3;
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
-        private IService _mainService;
 
         /**************************************************************************
 
             Public methods
-         
+
          **************************************************************************/
 
         public async Task<int> GetSteps() {
             byte[] steps = await GetData(UUID_CH_REALTIME_STEPS);
 
+            return DecodeSteps(steps);
+        }
+
+        public int DecodeSteps(byte[] steps) {
             return 0xff & steps[0] | (0xff & steps[1]) << 8;
         }
 
@@ -161,11 +177,60 @@ namespace EcoBand {
             return await SubscribeTo(UUID_CH_REALTIME_STEPS, callback);
         }
 
+        public async Task<int> GetHeartRate() {
+            IService service = await GetHeartRateService();
+            byte[] heartRate = await GetData(UUID_CH_HEART_RATE_CONTROL_POINT, service);
+
+            return DecodeHeartRate(heartRate);
+        }
+
+        public int DecodeHeartRate(byte[] heartRate) {
+            // if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
+            if (heartRate.Count() == 2) return (heartRate[1] & 0xff);
+            else {
+                Console.WriteLine("##### Received invalid heart rate value");
+                Console.WriteLine($"##### Byte array length: {heartRate.Count().ToString()}");
+
+                return -1;
+            }
+        }
+
+        public async Task<bool> SubscribeToHeartRate(EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
+            IService service;
+            ICharacteristic characteristic;
+            ICharacteristic controlPoint;
+
+            try {
+                Console.WriteLine("##### Trying to subscribe to characteristic...");
+
+                service = await GetHeartRateService();
+
+                characteristic = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_MEASUREMENT);
+                characteristic.ValueUpdated += callback;
+
+                await characteristic.StartUpdatesAsync();
+
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+
+                byte[] a = { CP_SET_HEART_RATE_CONTINUOUS };
+
+                await controlPoint.WriteAsync(a);
+
+
+                return true;
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+
+                return false;
+            }
+        }
+
 
         /**************************************************************************
 
             Private methods
-         
+
          **************************************************************************/
 
         private async Task<IService> GetMainService() {
@@ -181,16 +246,33 @@ namespace EcoBand {
             }
         }
 
-        private async Task<byte[]> GetData(Guid characteristic) {
+        private async Task<IService> GetHeartRateService() {
+            try {
+                if (_heartRateService == null) _heartRateService = await Device.GetServiceAsync(UUID_SV_HEART_RATE);
+
+                return _heartRateService;
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting heart rate service: {ex.Message}");
+
+                return null;
+            }
+        }
+
+        private async Task<byte[]> GetData(Guid characteristic, IService customService = null) {
             ICharacteristic data;
-            IService mainService = await GetMainService();
+            IService service;
+
+            if (customService == null) service = await GetMainService();
+            else service = customService;
 
             try {
                 Console.WriteLine("##### Trying to get characteristic data...");
 
-                data = await mainService.GetCharacteristicAsync(characteristic);
+                data = await service.GetCharacteristicAsync(characteristic);
 
-                return await data.ReadAsync();
+                if (data.CanRead) return await data.ReadAsync();
+                else return null;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
@@ -199,20 +281,17 @@ namespace EcoBand {
             }
         }
 
-        private async Task<bool> SubscribeTo(Guid uuid, EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
+        private async Task<bool> SubscribeTo(Guid uuid, EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback, IService customService = null) {
             IService service;
             ICharacteristic characteristic;
-            IDescriptor enableNotifications;
 
             try {
                 Console.WriteLine("##### Trying to subscribe to characteristic...");
 
-                service = await GetMainService();
+                if (customService == null) service = await GetMainService();
+                else service = customService;
+
                 characteristic = await service.GetCharacteristicAsync(uuid);
-                enableNotifications = await characteristic.GetDescriptorAsync(UUID_DC_NOTIFY_CHARACTERISTIC_DETECTION);
-
-                await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
-
                 characteristic.ValueUpdated += callback;
 
                 await characteristic.StartUpdatesAsync();

@@ -245,22 +245,37 @@ namespace EcoBand {
             try {
                 Console.WriteLine("##### Trying to get steps...");
 
-                int stepsValueConverted = await _device.GetSteps();
+                //int steps = await _device.GetSteps();
+                int heartRate = await _device.GetHeartRate();
 
-                Console.WriteLine($"##### STEPS: {stepsValueConverted}");
+                //Console.WriteLine($"##### STEPS: {steps}");
+                Console.WriteLine($"##### HEART RATE: {heartRate}");
 
-                bool result = await _device.SubscribeToSteps((o, arguments) => {
-                    Byte[] steps;
+                /*
+                bool stepsResult = await _device.SubscribeToSteps((o, arguments) => {
+                    Byte[] stepsBytes;
                     int stepsValue;
 
-                    steps = arguments.Characteristic.Value;
-                    stepsValue = 0xff & steps[0] | (0xff & steps[1]) << 8;
+                    stepsBytes = arguments.Characteristic.Value;
+                    stepsValue = _device.DecodeSteps(stepsBytes);
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
                     _userDialogs.Alert("Steps", stepsValue.ToString());
+                });*/
+
+                bool heartRateResult = await _device.SubscribeToHeartRate((o, arguments) => {
+                    Byte[] heartRateBytes;
+                    int heartRateValue;
+
+                    heartRateBytes = arguments.Characteristic.Value;
+                    heartRateValue = _device.DecodeHeartRate(heartRateBytes);
+
+                    Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
+                    _userDialogs.Alert("Heart Rate", heartRateValue.ToString());
                 });
 
-                if (!result) Console.WriteLine($"##### Error subscribing to steps");
+                // if (!stepsResult) Console.WriteLine($"##### Error subscribing to steps");
+                if (!heartRateResult) Console.WriteLine($"##### Error subscribing to heart rate");
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
