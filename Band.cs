@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Android.Bluetooth;
 using Plugin.BLE.Abstractions.Contracts;
 
 namespace EcoBand {
@@ -141,21 +143,7 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGING_FULL = 3;
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
-
         private IService _mainService;
-
-
-        /**************************************************************************
-
-            Getters/Setters
-         
-         **************************************************************************/
-
-        public List<Service> Services { get; }
-        public List<Characteristic> Characteristics { get; }
-        public IService MainService { get { return _mainService; } }
-        public IService HeartRateService;
-
 
         /**************************************************************************
 
@@ -163,16 +151,79 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        public Service getService(Guid uuid) {
-            return new Service("Test", "Test"); // TODO: Implement
+        public async Task<int> GetSteps() {
+            byte[] steps = await GetData(UUID_CH_REALTIME_STEPS);
+
+            return 0xff & steps[0] | (0xff & steps[1]) << 8;
         }
 
-        public Characteristic getCharacteristic(Guid uuid, Service service) {
-            return new Characteristic("Test", "Test"); // TODO: Implement
+        public async Task<bool> SubscribeToSteps(EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
+            return await SubscribeTo(UUID_CH_REALTIME_STEPS, callback);
         }
 
-        public async Task GetServices() {
-            _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
+
+        /**************************************************************************
+
+            Private methods
+         
+         **************************************************************************/
+
+        private async Task<IService> GetMainService() {
+            try {
+                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
+
+                return _mainService;
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting main service: {ex.Message}");
+
+                return null;
+            }
+        }
+
+        private async Task<byte[]> GetData(Guid characteristic) {
+            ICharacteristic data;
+            IService mainService = await GetMainService();
+
+            try {
+                Console.WriteLine("##### Trying to get characteristic data...");
+
+                data = await mainService.GetCharacteristicAsync(characteristic);
+
+                return await data.ReadAsync();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+
+                return null;
+            }
+        }
+
+        private async Task<bool> SubscribeTo(Guid uuid, EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
+            IService service;
+            ICharacteristic characteristic;
+            IDescriptor enableNotifications;
+
+            try {
+                Console.WriteLine("##### Trying to subscribe to characteristic...");
+
+                service = await GetMainService();
+                characteristic = await service.GetCharacteristicAsync(uuid);
+                enableNotifications = await characteristic.GetDescriptorAsync(UUID_DC_NOTIFY_CHARACTERISTIC_DETECTION);
+
+                await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
+
+                characteristic.ValueUpdated += callback;
+
+                await characteristic.StartUpdatesAsync();
+
+                return true;
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+
+                return false;
+            }
         }
     }
 }

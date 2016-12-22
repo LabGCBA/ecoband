@@ -71,7 +71,7 @@ namespace EcoBand {
                 StartActivityForResult(enableIntent, _requestEnableBluetooth);
             }
 
-            if (isPaired()) {
+            if (IsPaired()) {
                 try {
                     Connect().NoAwait();
                 }
@@ -197,6 +197,13 @@ namespace EcoBand {
 
             try {
                 await _adapter.ConnectToDeviceAsync(_device.Device, true);
+
+                if (nativeDevice.BondState == Bond.None) {
+                    Console.WriteLine("##### Bonding...");
+
+                    nativeDevice.CreateBond();
+                }
+                else Console.WriteLine("##### Already bonded");
             }
             catch (Exception ex) {
                 _userDialogs.Alert(ex.Message, "Falló la conexión con Mi Band.");
@@ -207,16 +214,15 @@ namespace EcoBand {
                 _userDialogs.HideLoading();
             }
 
-            if (nativeDevice.BondState == Bond.None) {
-                Console.WriteLine("##### Bonding...");
-
-                nativeDevice.CreateBond();
-            }
-            else Console.WriteLine("##### Already bonded");
-
-            await GetData();
-
+            _device = new Band(_device.Device);
             _userDialogs.ShowSuccess("Conectado a Mi Band");
+
+            try {
+                await GetData();
+            }
+            catch (Exception ex) { 
+                Console.WriteLine($"##### Error: {ex.Message}");
+            }
         }
 
         private async Task Disconnect(Band band) {
@@ -236,45 +242,32 @@ namespace EcoBand {
         }
 
         private async Task GetData() {
-            IService service;
-            ICharacteristic steps;
-            IDescriptor enableNotifications;
-            Byte[] stepsValue;
-
-            _device = new Band(_device.Device);
-
             try {
                 Console.WriteLine("##### Trying to get steps...");
 
-                service = await _device.Device.GetServiceAsync(Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb"));
-                steps = await ((IService) service).GetCharacteristicAsync(Guid.Parse("0000ff06-0000-1000-8000-00805f9b34fb"));
-                enableNotifications = await steps.GetDescriptorAsync(Guid.Parse("00002902-0000-1000-8000-00805f9b34fb"));
-
-                await enableNotifications.WriteAsync(BluetoothGattDescriptor.EnableNotificationValue.ToArray());
-
-                stepsValue = await steps.ReadAsync();
-
-                int stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+                int stepsValueConverted = await _device.GetSteps();
 
                 Console.WriteLine($"##### STEPS: {stepsValueConverted}");
 
-                steps.ValueUpdated += (o, arguments) => {
-                    stepsValue = arguments.Characteristic.Value;
+                bool result = await _device.SubscribeToSteps((o, arguments) => {
+                    Byte[] steps;
+                    int stepsValue;
 
-                    stepsValueConverted = 0xff & stepsValue[0] | (0xff & stepsValue[1]) << 8;
+                    steps = arguments.Characteristic.Value;
+                    stepsValue = 0xff & steps[0] | (0xff & steps[1]) << 8;
 
-                    Console.WriteLine($"##### STEPS UPDATED: {stepsValueConverted}");
-                    _userDialogs.Alert("Steps", stepsValueConverted.ToString());
-                };
+                    Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
+                    _userDialogs.Alert("Steps", stepsValue.ToString());
+                });
 
-                await steps.StartUpdatesAsync();
+                if (!result) Console.WriteLine($"##### Error subscribing to steps");
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
             }
         }
 
-        private bool isPaired() {
+        private bool IsPaired() {
             List<IDevice> pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
             bool foundDevice = false;
 
@@ -318,12 +311,10 @@ namespace EcoBand {
             UserDialogs.Init(this);
 
             _userDialogs = UserDialogs.Instance;
-            // Get our button from the layout resource,
-            // and attach an event to it
             _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
             _connectButton.Click += OnConnectButtonClick;
 
-            if (isPaired()) {
+            if (IsPaired()) {
                 try {
                     Connect().NoAwait();
                 }
