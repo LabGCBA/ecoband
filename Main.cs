@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +29,7 @@ namespace EcoBand {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
+            _timer = new System.Timers.Timer(10000);
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -35,6 +37,7 @@ namespace EcoBand {
             _adapter.DeviceDiscovered += OnDeviceDiscovered;
             _adapter.DeviceDisconnected += OnDeviceDisconnected;
             _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
+            _timer.Elapsed += OnTimedEvent;
         }
 
         ~Main() {
@@ -54,6 +57,7 @@ namespace EcoBand {
         private Button _connectButton;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
+        private System.Timers.Timer _timer;
         private const int _requestEnableBluetooth = 2;
 
 
@@ -72,12 +76,15 @@ namespace EcoBand {
             }
 
             if (IsPaired()) {
-                try {
-                    Connect().NoAwait();
+                if (_adapter.ConnectedDevices.Count == 0) { 
+                    try {
+                        Connect().NoAwait();
+                    }
+                    catch (Exception ex) {
+                        Console.WriteLine($"##### Error: {ex.Message}");
+                    }
                 }
-                catch (Exception ex) {
-                    Console.WriteLine($"##### Error: {ex.Message}");
-                }
+                else _userDialogs.Toast("Ya está conectada");
             }
             else { 
                 Console.WriteLine("##### Band is not paired");
@@ -139,6 +146,19 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
+            }
+        }
+
+        private async void OnTimedEvent(object source, ElapsedEventArgs e) {
+            try {
+                int heartRate = await _device.GetHeartRate();
+
+                _userDialogs.Alert(heartRate.ToString(), "Heart Rate");
+
+                Console.WriteLine($"##### HEART RATE: {heartRate}");
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
             }
         }
 
@@ -243,15 +263,16 @@ namespace EcoBand {
 
         private async Task GetData() {
             try {
-                Console.WriteLine("##### Trying to get steps...");
+                Console.WriteLine("##### Trying to get steps and heart rate...");
 
-                //int steps = await _device.GetSteps();
+                int steps = await _device.GetSteps();
                 int heartRate = await _device.GetHeartRate();
 
-                //Console.WriteLine($"##### STEPS: {steps}");
+                _userDialogs.Alert("Heart Rate", heartRate.ToString());
+
+                Console.WriteLine($"##### STEPS: {steps}");
                 Console.WriteLine($"##### HEART RATE: {heartRate}");
 
-                /*
                 bool stepsResult = await _device.SubscribeToSteps((o, arguments) => {
                     Byte[] stepsBytes;
                     int stepsValue;
@@ -260,8 +281,8 @@ namespace EcoBand {
                     stepsValue = _device.DecodeSteps(stepsBytes);
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
-                    _userDialogs.Alert("Steps", stepsValue.ToString());
-                });*/
+                    _userDialogs.Alert(stepsValue.ToString(), "Steps");
+                });
 
                 bool heartRateResult = await _device.SubscribeToHeartRate((o, arguments) => {
                     Byte[] heartRateBytes;
@@ -271,10 +292,10 @@ namespace EcoBand {
                     heartRateValue = _device.DecodeHeartRate(heartRateBytes);
 
                     Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
-                    _userDialogs.Alert("Heart Rate", heartRateValue.ToString());
+                    _userDialogs.Alert(heartRateValue.ToString(), "Heart Rate");
                 });
 
-                // if (!stepsResult) Console.WriteLine($"##### Error subscribing to steps");
+                if (!stepsResult) Console.WriteLine($"##### Error subscribing to steps");
                 if (!heartRateResult) Console.WriteLine($"##### Error subscribing to heart rate");
             }
             catch (Exception ex) {

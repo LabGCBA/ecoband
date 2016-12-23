@@ -116,37 +116,40 @@ namespace EcoBand {
 
 
         // Commands to send to UUID_CH_CONTROL_POINT
-        private readonly byte CP_SET_HEART_RATE_SLEEP = 0x00;
-        private readonly byte CP_SET_HEART_RATE_CONTINUOUS = 0x01;
-        private readonly byte CP_SET_HEART_RATE_MANUAL = 0x02;
-        private readonly byte CP_NOTIFY_REALTIME_STEPS = 0x03;
-        private readonly byte CP_SET_ALARM = 0x04;
-        private readonly byte CP_SET_GOAL = 0x05;
-        private readonly byte CP_FETCH_DATA = 0x06;
-        private readonly byte CP_SEND_FIRMWARE_INFO = 0x07;
-        private readonly byte CP_SEND_NOTIFICATION = 0x08;
-        private readonly byte CP_FACTORY_RESET = 0x09;
+        private readonly byte CP_SET_HEART_RATE_SLEEP = 0x0;
+        private readonly byte CP_SET_HEART_RATE_CONTINUOUS = 0x1;
+        private readonly byte CP_SET_HEART_RATE_MANUAL = 0x2;
+        private readonly byte CP_NOTIFY_REALTIME_STEPS = 0x3;
+        private readonly byte CP_SET_ALARM = 0x4;
+        private readonly byte CP_SET_GOAL = 0x5;
+        private readonly byte CP_FETCH_DATA = 0x6;
+        private readonly byte CP_SEND_FIRMWARE_INFO = 0x7;
+        private readonly byte CP_SEND_NOTIFICATION = 0x8;
+        private readonly byte CP_FACTORY_RESET = 0x9;
         private readonly byte CP_SET_REALTIME_STEPS = 0x10;
         private readonly byte CP_STOP_SYNC = 0x11;
         private readonly byte CP_NOTIFY_SENSOR_DATA = 0x12;
         private readonly byte CP_STOP_VIBRATION = 0x13;
-        private readonly byte CP_CONFIRM_SYNC = 0x0A;
-        private readonly byte CP_SYNC = 0x0B;
-        private readonly byte CP_REBOOT = 0x0C;
-        private readonly byte CP_SET_THEME = 0x0E;
-        private readonly byte CP_SET_WEAR_LOCATION = 0x0F;
+        private readonly byte CP_CONFIRM_SYNC = 0xA;
+        private readonly byte CP_SYNC = 0xB;
+        private readonly byte CP_REBOOT = 0xC;
+        private readonly byte CP_SET_THEME = 0xE;
+        private readonly byte CP_SET_WEAR_LOCATION = 0xF;
+
+        private readonly byte[] startHeartMeasurementManual = { 0x15, 0x2, 1 };
+        private readonly byte[] stopHeartMeasurementManual = { 0x15, 0x2, 0 };
+        private readonly byte[] startHeartMeasurementContinuous = { 0x15, 0x1, 1 };
+        private readonly byte[] stopHeartMeasurementContinuous = { 0x15, 0x1, 0 };
+        private readonly byte[] startHeartMeasurementSleep = { 0x15, 0x0, 1 };
+        private readonly byte[] stopHeartMeasurementSleep = { 0x15, 0x0, 0 };
 
 
         // Test commands to send to UUID_CH_TEST
-        private readonly byte TEST_REMOTE_DISCONNECT = 0x01;
-        private readonly byte TEST_SELFTEST = 0x02;
-        private readonly byte TEST_NOTIFICATION = 0x03;
-        private readonly byte TEST_WRITE_MD5 = 0x04;
-        private readonly byte TEST_DISCONNECTED_REMINDER = 0x05;
-
-
-        // Protocols
-        private readonly byte[] PROTOCOL_START_HEART_RATE_SCAN = { 21, 2, 1 };
+        private readonly byte TEST_REMOTE_DISCONNECT = 0x1;
+        private readonly byte TEST_SELFTEST = 0x2;
+        private readonly byte TEST_NOTIFICATION = 0x3;
+        private readonly byte TEST_WRITE_MD5 = 0x4;
+        private readonly byte TEST_DISCONNECTED_REMINDER = 0x5;
 
 
         // Battery status
@@ -178,15 +181,33 @@ namespace EcoBand {
         }
 
         public async Task<int> GetHeartRate() {
-            IService service = await GetHeartRateService();
-            byte[] heartRate = await GetData(UUID_CH_HEART_RATE_CONTROL_POINT, service);
+            IService service;
+            ICharacteristic controlPoint;
 
-            return DecodeHeartRate(heartRate);
+            try {
+                Console.WriteLine("##### Trying to get heart rate...");
+
+                service = await GetHeartRateService();
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+
+                await controlPoint.WriteAsync(stopHeartMeasurementSleep);
+                await controlPoint.WriteAsync(stopHeartMeasurementContinuous);
+                await controlPoint.WriteAsync(stopHeartMeasurementManual);
+                await controlPoint.WriteAsync(startHeartMeasurementManual);
+
+                byte[] heartRate = await GetData(UUID_CH_HEART_RATE_CONTROL_POINT, service);
+
+                return DecodeHeartRate(heartRate);
+            }
+            catch (Exception ex) { 
+                Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
+
+                return -1;
+            }
         }
 
         public int DecodeHeartRate(byte[] heartRate) {
-            // if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
-            if (heartRate.Count() == 2) return (heartRate[1] & 0xff);
+            if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
             else {
                 Console.WriteLine("##### Received invalid heart rate value");
                 Console.WriteLine($"##### Byte array length: {heartRate.Count().ToString()}");
@@ -204,18 +225,16 @@ namespace EcoBand {
                 Console.WriteLine("##### Trying to subscribe to characteristic...");
 
                 service = await GetHeartRateService();
-
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
                 characteristic = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_MEASUREMENT);
+
                 characteristic.ValueUpdated += callback;
 
                 await characteristic.StartUpdatesAsync();
-
-                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
-
-                byte[] a = { CP_SET_HEART_RATE_CONTINUOUS };
-
-                await controlPoint.WriteAsync(a);
-
+                await controlPoint.WriteAsync(stopHeartMeasurementManual);
+                await controlPoint.WriteAsync(stopHeartMeasurementSleep);
+                await controlPoint.WriteAsync(stopHeartMeasurementContinuous);
+                await controlPoint.WriteAsync(startHeartMeasurementContinuous);
 
                 return true;
             }
