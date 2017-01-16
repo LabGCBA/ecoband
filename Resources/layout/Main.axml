@@ -23,41 +23,21 @@
         android:layout_gravity="fill" />
     <TextView
         android:theme="@style/TextView"
+        android:id="@+id/lblHeartBeats"
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
-        android:text="This"
-        android:textSize="14dip"
+        android:text="0"
+        android:textSize="200dp"
         android:layout_row="1"
         android:layout_column="0"
-        android:gravity="center" />
+        android:layout_columnSpan="2"
+        android:gravity="center"
+        android:textStyle="normal" />
     <TextView
         android:theme="@style/TextView"
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
-        android:text="text is"
-        android:textSize="14dip"
-        android:layout_row="1"
-        android:layout_column="1"
-        android:gravity="center" />
-    <Space
-        android:layout_row="2"
-        android:layout_column="0"
-        android:layout_width="50dp"
-        android:layout_height="50dp" />
-    <TextView
-        android:theme="@style/TextView"
-        android:layout_columnWeight="1"
-        android:layout_gravity="fill_horizontal"
-        android:text="in a"
-        android:textSize="14dip"
-        android:layout_row="2"
-        android:layout_column="0"
-        android:gravity="center" />
-    <TextView
-        android:theme="@style/TextView"
-        android:layout_columnWeight="1"
-        android:layout_gravity="fill_horizontal"
-        android:text="grid!"
+        android:text="Pulsos"
         android:textSize="14dip"
         android:layout_row="2"
         android:layout_column="1"

@@ -55,6 +55,7 @@ namespace EcoBand {
         private readonly IBluetoothLE _ble;
         private Band _device;
         private Button _connectButton;
+        private TextView _heartRateLabel;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
         private System.Timers.Timer _timer;
@@ -263,16 +264,7 @@ namespace EcoBand {
 
         private async Task GetData() {
             try {
-                Console.WriteLine("##### Trying to get steps and heart rate...");
-
-                int steps = await _device.GetSteps();
-                int heartRate = await _device.GetHeartRate();
-
-                _userDialogs.Alert("Heart Rate", heartRate.ToString());
-
-                Console.WriteLine($"##### STEPS: {steps}");
-                Console.WriteLine($"##### HEART RATE: {heartRate}");
-
+                /*
                 bool stepsResult = await _device.SubscribeToSteps((o, arguments) => {
                     Byte[] stepsBytes;
                     int stepsValue;
@@ -281,7 +273,7 @@ namespace EcoBand {
                     stepsValue = _device.DecodeSteps(stepsBytes);
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
-                    _userDialogs.Alert(stepsValue.ToString(), "Steps");
+                    // _userDialogs.Alert(stepsValue.ToString(), "Steps");
                 });
 
                 bool heartRateResult = await _device.SubscribeToHeartRate((o, arguments) => {
@@ -292,11 +284,20 @@ namespace EcoBand {
                     heartRateValue = _device.DecodeHeartRate(heartRateBytes);
 
                     Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
-                    _userDialogs.Alert(heartRateValue.ToString(), "Heart Rate");
+                    _heartRateLabel.Text = heartRateValue.ToString();
                 });
+                */
 
-                if (!stepsResult) Console.WriteLine($"##### Error subscribing to steps");
-                if (!heartRateResult) Console.WriteLine($"##### Error subscribing to heart rate");
+                Console.WriteLine("##### Trying to get steps and heart rate...");
+
+                // int steps = await _device.GetSteps();
+                // int steps = 1000;
+                int heartRate = await _device.GetHeartRate();
+
+                // Console.WriteLine($"##### STEPS: {steps}");
+                // .WriteLine($"##### HEART RATE: {heartRate}");
+
+                _heartRateLabel.Text = heartRate.ToString();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
@@ -348,6 +349,7 @@ namespace EcoBand {
 
             _userDialogs = UserDialogs.Instance;
             _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
+            _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
             _connectButton.Click += OnConnectButtonClick;
 
             if (IsPaired()) {

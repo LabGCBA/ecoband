@@ -1926,8 +1926,8 @@ namespace EcoBand
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f090077
-			public const int action0 = 2131296375;
+			// aapt resource value: 0x7f090078
+			public const int action0 = 2131296376;
 			
 			// aapt resource value: 0x7f09005a
 			public const int action_bar = 2131296346;
@@ -1953,8 +1953,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f09005b
 			public const int action_context_bar = 2131296347;
 			
-			// aapt resource value: 0x7f09007b
-			public const int action_divider = 2131296379;
+			// aapt resource value: 0x7f09007c
+			public const int action_divider = 2131296380;
 			
 			// aapt resource value: 0x7f090003
 			public const int action_menu_divider = 2131296259;
@@ -1992,8 +1992,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090044
 			public const int buttonPanel = 2131296324;
 			
-			// aapt resource value: 0x7f090078
-			public const int cancel_action = 2131296376;
+			// aapt resource value: 0x7f090079
+			public const int cancel_action = 2131296377;
 			
 			// aapt resource value: 0x7f090014
 			public const int center = 2131296276;
@@ -2007,8 +2007,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090052
 			public const int checkbox = 2131296338;
 			
-			// aapt resource value: 0x7f09007e
-			public const int chronometer = 2131296382;
+			// aapt resource value: 0x7f09007f
+			public const int chronometer = 2131296383;
 			
 			// aapt resource value: 0x7f09001d
 			public const int clip_horizontal = 2131296285;
@@ -2058,8 +2058,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090017
 			public const int end = 2131296279;
 			
-			// aapt resource value: 0x7f090083
-			public const int end_padder = 2131296387;
+			// aapt resource value: 0x7f090084
+			public const int end_padder = 2131296388;
 			
 			// aapt resource value: 0x7f09000b
 			public const int enterAlways = 2131296267;
@@ -2103,20 +2103,23 @@ namespace EcoBand
 			// aapt resource value: 0x7f09003f
 			public const int image = 2131296319;
 			
-			// aapt resource value: 0x7f090082
-			public const int info = 2131296386;
+			// aapt resource value: 0x7f090083
+			public const int info = 2131296387;
 			
 			// aapt resource value: 0x7f09000a
 			public const int item_touch_helper_previous_elevation = 2131296266;
 			
+			// aapt resource value: 0x7f090077
+			public const int lblHeartBeats = 2131296375;
+			
 			// aapt resource value: 0x7f090019
 			public const int left = 2131296281;
 			
-			// aapt resource value: 0x7f09007c
-			public const int line1 = 2131296380;
+			// aapt resource value: 0x7f09007d
+			public const int line1 = 2131296381;
 			
-			// aapt resource value: 0x7f090080
-			public const int line3 = 2131296384;
+			// aapt resource value: 0x7f090081
+			public const int line3 = 2131296385;
 			
 			// aapt resource value: 0x7f090025
 			public const int listMode = 2131296293;
@@ -2133,8 +2136,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090075
 			public const int loadingProgressWheel = 2131296373;
 			
-			// aapt resource value: 0x7f09007a
-			public const int media_actions = 2131296378;
+			// aapt resource value: 0x7f09007b
+			public const int media_actions = 2131296379;
 			
 			// aapt resource value: 0x7f090034
 			public const int middle = 2131296308;
@@ -2268,8 +2271,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f09001b
 			public const int start = 2131296283;
 			
-			// aapt resource value: 0x7f090079
-			public const int status_bar_latest_event_content = 2131296377;
+			// aapt resource value: 0x7f09007a
+			public const int status_bar_latest_event_content = 2131296378;
 			
 			// aapt resource value: 0x7f090065
 			public const int submit_area = 2131296357;
@@ -2277,11 +2280,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f090026
 			public const int tabMode = 2131296294;
 			
-			// aapt resource value: 0x7f090081
-			public const int text = 2131296385;
+			// aapt resource value: 0x7f090082
+			public const int text = 2131296386;
 			
-			// aapt resource value: 0x7f09007f
-			public const int text2 = 2131296383;
+			// aapt resource value: 0x7f090080
+			public const int text2 = 2131296384;
 			
 			// aapt resource value: 0x7f09004d
 			public const int textSpacerNoButtons = 2131296333;
@@ -2289,8 +2292,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090073
 			public const int textViewStatus = 2131296371;
 			
-			// aapt resource value: 0x7f09007d
-			public const int time = 2131296381;
+			// aapt resource value: 0x7f09007e
+			public const int time = 2131296382;
 			
 			// aapt resource value: 0x7f090043
 			public const int title = 2131296323;
