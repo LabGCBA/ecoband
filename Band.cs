@@ -220,7 +220,7 @@ namespace EcoBand {
                     heartRateBytes = arguments.Characteristic.Value;
                     heartRateValue = DecodeHeartRate(heartRateBytes);
 
-                    Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
+                    if (heartRateValue != 0) Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
                 });
 
                 return wroteUserInfo && suscribed;
