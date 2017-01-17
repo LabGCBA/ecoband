@@ -28,6 +28,7 @@ namespace EcoBand {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
+            _firstMeasurements = 0;
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -55,8 +56,9 @@ namespace EcoBand {
         private TextView _heartRateLabel;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
-        private System.Threading.Timer _measurements;
-        private const int _measurementInterval = 10000;
+        private Timer _measurements;
+        private int _firstMeasurements;
+        private const int _measurementInterval = 15000;
         private const int _requestEnableBluetooth = 2;
 
 
@@ -147,16 +149,23 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error starting measurements: {ex.Message}");
+
+                HideFirstMeasurementSpinner();
             }
         }
 
         private void OnStepsChange(object sender, MeasureEventArgs e) {
             Console.WriteLine($"##### Received steps value: {e.Measure}");
+
+            HideFirstMeasurementSpinner();
+
         }
 
         private void OnHeartRateChange(object sender, MeasureEventArgs e) {
             RunOnUiThread(() => {
                 _heartRateLabel.Text = e.Measure.ToString();
+
+                HideFirstMeasurementSpinner();
             });
         }
 
@@ -210,7 +219,7 @@ namespace EcoBand {
                             Console.WriteLine($"##### Error connecting to device: {ex.Message}");
                         }
                     }
-                    else Console.WriteLine("##### Device is connected"); // TODO: Check connection every 5 seconds or so
+                    else Console.WriteLine("##### Device is connected");
                 }
                 else {
                     Console.WriteLine("##### Band is not paired");
@@ -230,7 +239,10 @@ namespace EcoBand {
 
                 Console.WriteLine("##### Beginning scan...");
 
-                _userDialogs.ShowLoading("Buscando dispositivos...");
+                RunOnUiThread(() => {
+                    _userDialogs.ShowLoading("Buscando dispositivos...");
+                });
+
                 _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token).NoAwait();
             }
             else {
@@ -261,19 +273,21 @@ namespace EcoBand {
                 return;
             }
             finally { 
-                _userDialogs.HideLoading();
+                RunOnUiThread(() => {
+                    _userDialogs.HideLoading();
+                });
             }
 
             _device = new Band(_device.Device);
-            // _userDialogs.ShowSuccess("Conectado a Mi Band");
 
-            SetTimer(_measurementInterval);
             SetMeasurementEventHandlers().NoAwait();
         }
 
         private async Task Disconnect(Band band) {
             try {
-                _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
+                RunOnUiThread(() => {
+                    _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
+                });
 
                 await _adapter.DisconnectDeviceAsync(band.Device);
             }
@@ -283,7 +297,9 @@ namespace EcoBand {
                 return;
             }
             finally {
-                _userDialogs.HideLoading();
+                RunOnUiThread(() => {
+                    _userDialogs.HideLoading();
+                });
             }
         }
 
@@ -303,9 +319,11 @@ namespace EcoBand {
                 _device.HeartRate += OnHeartRateChange;
 
                 await StartMeasuring();
+
+                SetTimer(_measurementInterval);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error: {ex.Message}");
+                Console.WriteLine($"##### Error setting measurement event handlers: {ex.Message}");
             }
         }
 
@@ -315,8 +333,20 @@ namespace EcoBand {
                 await _device.StartMeasuringSteps();
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error: {ex.Message}");
+                Console.WriteLine($"##### Error starting measurements: {ex.Message}");
             }
+        }
+
+        private void ShowFirstMeasurementSpinner() {
+            RunOnUiThread(() => {
+                _userDialogs.ShowLoading("Activando sensores...");
+            });
+        }
+
+        private void HideFirstMeasurementSpinner() { 
+            RunOnUiThread(() => {
+                _userDialogs.HideLoading();
+            });
         }
 
         private bool IsPaired() {
@@ -337,6 +367,8 @@ namespace EcoBand {
 
                 if (foundDevice && _device != null) {
                     Console.WriteLine("##### Band is already paired");
+
+                    ShowFirstMeasurementSpinner();
 
                     return true;
                 }
@@ -374,7 +406,7 @@ namespace EcoBand {
         public Timer instance;
         private bool _disposed;
 
-        TimerState() {
+        public TimerState() {
             _disposed = false;
         }
 
