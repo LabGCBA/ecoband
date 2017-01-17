@@ -159,6 +159,7 @@ namespace EcoBand {
         private void CleanupCancellationToken() {
             if (_cancellationTokenSource != null) { 
                 _cancellationTokenSource.Dispose();
+
                 _cancellationTokenSource = null;
             }
         }
@@ -182,6 +183,7 @@ namespace EcoBand {
                             Console.WriteLine($"##### Error connecting to device: {ex.Message}");
                         }
                     }
+                    else Console.WriteLine("##### Device is connected"); // TODO: Check connection every 5 seconds or so
                 }
                 else {
                     Console.WriteLine("##### Band is not paired");
@@ -313,7 +315,6 @@ namespace EcoBand {
             // LayoutInflater inflater = Application.Context.GetSystemService(Context.LayoutInflaterService) as LayoutInflater;
             // View layout = inflater.Inflate(Resource.Layout.Main, null);
 
-            // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
 
