@@ -167,18 +167,23 @@ namespace EcoBand {
 
          **************************************************************************/
 
-        public async Task<int> GetSteps() {
-            byte[] steps = await ReadFromCharacteristic(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN);
+        public async Task<bool> StartMeasuringSteps() {
+            try {
+                return await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
+                    Byte[] stepsBytes;
+                    int stepsValue;
 
-            return DecodeSteps(steps);
-        }
+                    stepsBytes = arguments.Characteristic.Value;
+                    stepsValue = DecodeSteps(stepsBytes);
 
-        public int DecodeSteps(byte[] steps) {
-            return 0xff & steps[0] | (0xff & steps[1]) << 8;
-        }
+                    Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
+                });
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to steps: {ex.Message}");
 
-        public async Task<bool> SubscribeToSteps(EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
-            return await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, callback);
+                return false;
+            }
         }
 
         public async Task<bool> StartMeasuringHeartRate() {
@@ -416,6 +421,10 @@ namespace EcoBand {
 
                 return false;
             }
+        }
+
+        private int DecodeSteps(byte[] steps) {
+            return 0xff & steps[0] | (0xff & steps[1]) << 8;
         }
 
         private int DecodeHeartRate(byte[] heartRate) {
