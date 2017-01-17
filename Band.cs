@@ -308,11 +308,9 @@ namespace EcoBand {
             try {
                 Console.WriteLine("##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
 
-                if (characteristic.CanWrite) {
-                    return await characteristic.WriteAsync(data);
-                }
+                if (characteristic.CanWrite) return await characteristic.WriteAsync(data);
 
-                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does bot support write");
+                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does not support write");
 
                 return false;
             }
