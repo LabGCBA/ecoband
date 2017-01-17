@@ -232,30 +232,6 @@ namespace EcoBand {
             }
         }
 
-        public async Task<bool> SubscribeToHeartRate(EventHandler<CharacteristicUpdatedEventArgs> callback) {
-            try {
-                IService service;
-                ICharacteristic controlPoint;
-                bool suscribed;
-                bool stoppedMeasuring;
-                bool startedMeasuring;
-
-                service = await GetService(UUID_SV_HEART_RATE);
-                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
-
-                suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
-                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
-                startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
-
-                return suscribed && stoppedMeasuring && startedMeasuring;
-            }
-            catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
-
-                return false;
-            }
-        }
-
 
         /**************************************************************************
 
@@ -447,6 +423,29 @@ namespace EcoBand {
             Console.WriteLine("##### Received invalid heart rate value");
 
             return (heartRate[0] & 0xff);
+        }
+
+        private async Task<bool> SubscribeToHeartRate(EventHandler<CharacteristicUpdatedEventArgs> callback) {
+            try {
+                IService service;
+                ICharacteristic controlPoint;
+                bool suscribed;
+                bool stoppedMeasuring;
+                bool startedMeasuring;
+
+                service = await GetService(UUID_SV_HEART_RATE);
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+                suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
+                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+                startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
+
+                return suscribed && stoppedMeasuring && startedMeasuring;
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+
+                return false;
+            }
         }
     }
 }
