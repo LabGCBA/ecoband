@@ -282,7 +282,7 @@ namespace EcoBand {
 
             if (pairedDevices.Count > 0) {
                 foreach (IDevice device in pairedDevices) {
-                    if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
+                    if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
                         Console.WriteLine($"##### Paired device: {device.Name}");
 
                         foundDevice = true;

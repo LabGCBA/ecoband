@@ -141,8 +141,8 @@ namespace EcoBand {
             buffer.WriteByte(_weight);
             buffer.WriteByte(_type);
 
-            if (address.StartsWith(Band.MAC_ADDRESS_FILTER[0], StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(5);
-            else if (address.StartsWith(Band.MAC_ADDRESS_FILTER[1], StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(4);
+            if (address.StartsWith(Band.MAC_ADDRESS_FILTER[0], StringComparison.InvariantCultureIgnoreCase)) buffer.WriteByte(5);
+            else if (address.StartsWith(Band.MAC_ADDRESS_FILTER[1], StringComparison.InvariantCultureIgnoreCase)) buffer.WriteByte(4);
             else buffer.WriteByte(4);
 
             buffer.WriteByte(0);
