@@ -209,7 +209,7 @@ namespace EcoBand {
             try {
                 Console.WriteLine("##### Trying to get heart rate...");
 
-                userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 21, 182, 76, "Rita", 0); // TODO: Use user's data
+                userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
 
                 wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
