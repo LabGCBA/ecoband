@@ -142,7 +142,7 @@ namespace EcoBand {
             state = null;
 
             try {
-                Console.WriteLine($"##### Re-measuring...");
+                Console.WriteLine("##### Starting new measurement cycle...");
 
                 SetTimer(_measurementInterval);
                 StartMeasuring().NoAwait();
