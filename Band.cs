@@ -178,7 +178,7 @@ namespace EcoBand {
         public async Task<bool> StartMeasuringSteps() {
             try {
                 bool suscribed;
-                bool startedMeasurement;
+                bool startedMeasuring;
 
                 suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
                     byte[] stepsBytes;
@@ -189,9 +189,9 @@ namespace EcoBand {
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
                 });
-                startedMeasurement = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
+                startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
 
-                return suscribed && startedMeasurement;
+                return suscribed && startedMeasuring;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error subscribing to steps: {ex.Message}");
@@ -237,17 +237,17 @@ namespace EcoBand {
                 IService service;
                 ICharacteristic controlPoint;
                 bool suscribed;
-                bool stoppedMeasurement;
-                bool startedMeasurement;
+                bool stoppedMeasuring;
+                bool startedMeasuring;
 
                 service = await GetService(UUID_SV_HEART_RATE);
                 controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
 
                 suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
-                stoppedMeasurement = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
-                startedMeasurement = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
+                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+                startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
 
-                return suscribed && stoppedMeasurement && startedMeasurement;
+                return suscribed && stoppedMeasuring && startedMeasuring;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
