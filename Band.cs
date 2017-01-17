@@ -167,10 +167,25 @@ namespace EcoBand {
 
          **************************************************************************/
 
+        public async Task<int> GetCurrentSteps() {
+            try {
+                byte[] steps;
+
+                steps = await ReadFromCharacteristic(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN);
+
+                return DecodeSteps(steps);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting steps: {ex.Message}");
+
+                return -1;
+            }
+        }
+ 
         public async Task<bool> StartMeasuringSteps() {
             try {
                 return await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
-                    Byte[] stepsBytes;
+                    byte[] stepsBytes;
                     int stepsValue;
 
                     stepsBytes = arguments.Characteristic.Value;
@@ -198,7 +213,7 @@ namespace EcoBand {
 
                 await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
                 await SubscribeToHeartRate((o, arguments) => {
-                    Byte[] heartRateBytes;
+                    byte[] heartRateBytes;
                     int heartRateValue;
 
                     heartRateBytes = arguments.Characteristic.Value;
@@ -429,14 +444,10 @@ namespace EcoBand {
 
         private int DecodeHeartRate(byte[] heartRate) {
             if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
-            else {
-                Console.WriteLine("##### Received invalid heart rate value");
-                Console.WriteLine($"##### Byte array length: {heartRate.Count().ToString()}");
-                Console.WriteLine($"##### heartRate[0]: {heartRate[0].ToString()}");
-                Console.WriteLine($"##### heartRate[1]: {heartRate[1].ToString()}");
 
-                return (heartRate[0] & 0xff);
-            }
+            Console.WriteLine("##### Received invalid heart rate value");
+
+            return (heartRate[0] & 0xff);
         }
     }
 }
