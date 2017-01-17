@@ -68,32 +68,6 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        private void OnConnectButtonClick(object sender, EventArgs e) {
-            Console.WriteLine("##### Clicked Connect button");
-
-            if (!_ble.IsOn) {
-                Intent enableIntent = new Intent(BluetoothAdapter.ActionRequestEnable);
-                StartActivityForResult(enableIntent, _requestEnableBluetooth);
-            }
-
-            if (IsPaired()) {
-                if (_adapter.ConnectedDevices.Count == 0) { 
-                    try {
-                        Connect().NoAwait();
-                    }
-                    catch (Exception ex) {
-                        Console.WriteLine($"##### Error: {ex.Message}");
-                    }
-                }
-                else _userDialogs.Toast("Ya está conectada");
-            }
-            else { 
-                Console.WriteLine("##### Band is not paired");
-
-                Discover();
-            }
-        }
-
         private void OnStateChanged(object sender, BluetoothStateChangedArgs e) {
             Console.WriteLine($"##### State changed to {e.NewState.ToString()}");
         }
@@ -189,6 +163,34 @@ namespace EcoBand {
             }
         }
 
+        private async Task CheckConnection() {
+            if (!_ble.IsOn) {
+                Intent enableIntent;
+
+                enableIntent = new Intent(BluetoothAdapter.ActionRequestEnable);
+
+                StartActivityForResult(enableIntent, _requestEnableBluetooth);
+                Discover();
+            }
+            else {
+                if (IsPaired()) {
+                    if (_adapter.ConnectedDevices.Count == 0) {
+                        try {
+                            await Connect();
+                        }
+                        catch (Exception ex) {
+                            Console.WriteLine($"##### Error connecting to device: {ex.Message}");
+                        }
+                    }
+                }
+                else {
+                    Console.WriteLine("##### Band is not paired");
+
+                    Discover();
+                }
+            }
+        }
+
         private void Discover() {
             if (_ble.IsOn) {
                 Console.WriteLine("##### Bluetooth is on");
@@ -210,7 +212,9 @@ namespace EcoBand {
         }
 
         private async Task Connect() {
-            BluetoothDevice nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
+            BluetoothDevice nativeDevice;
+
+            nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
 
             try {
                 await _adapter.ConnectToDeviceAsync(_device.Device, true);
@@ -235,7 +239,7 @@ namespace EcoBand {
             _userDialogs.ShowSuccess("Conectado a Mi Band");
 
             try {
-                await GetData();
+                await StartMeasuring();
             }
             catch (Exception ex) { 
                 Console.WriteLine($"##### Error: {ex.Message}");
@@ -258,43 +262,10 @@ namespace EcoBand {
             }
         }
 
-        private async Task GetData() {
+        private async Task StartMeasuring() {
             try {
-                /*
-                bool stepsResult = await _device.SubscribeToSteps((o, arguments) => {
-                    Byte[] stepsBytes;
-                    int stepsValue;
-
-                    stepsBytes = arguments.Characteristic.Value;
-                    stepsValue = _device.DecodeSteps(stepsBytes);
-
-                    Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
-                    // _userDialogs.Alert(stepsValue.ToString(), "Steps");
-                });
-
-                bool heartRateResult = await _device.SubscribeToHeartRate((o, arguments) => {
-                    Byte[] heartRateBytes;
-                    int heartRateValue;
-
-                    heartRateBytes = arguments.Characteristic.Value;
-                    heartRateValue = _device.DecodeHeartRate(heartRateBytes);
-
-                    Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
-                    _heartRateLabel.Text = heartRateValue.ToString();
-                });
-                */
-
-                Console.WriteLine("##### Trying to get steps and heart rate...");
-
-                // int steps = await _device.GetSteps();
-                // int steps = 1000;
                 await _device.StartMeasuringHeartRate();
                 await _device.StartMeasuringSteps();
-
-                // Console.WriteLine($"##### STEPS: {steps}");
-                // .WriteLine($"##### HEART RATE: {heartRate}");
-
-                // _heartRateLabel.Text = heartRate.ToString();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
@@ -302,8 +273,10 @@ namespace EcoBand {
         }
 
         private bool IsPaired() {
-            List<IDevice> pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
+            List<IDevice> pairedDevices;
             bool foundDevice = false;
+
+            pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
 
             if (pairedDevices.Count > 0) {
                 foreach (IDevice device in pairedDevices) {
@@ -345,18 +318,9 @@ namespace EcoBand {
             UserDialogs.Init(this);
 
             _userDialogs = UserDialogs.Instance;
-            _connectButton = FindViewById<Button>(Resource.Id.btnConnect);
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
-            _connectButton.Click += OnConnectButtonClick;
 
-            if (IsPaired()) {
-                try {
-                    Connect().NoAwait();
-                }
-                catch (Exception ex) {
-                    Console.WriteLine($"##### Error: {ex.Message}");
-                }
-            }
+            CheckConnection().NoAwait();
         }
     }
 }
