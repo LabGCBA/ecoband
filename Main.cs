@@ -136,8 +136,8 @@ namespace EcoBand {
 
             state = (TimerState) timerState;
 
-            state.instance.Dispose();
-            state.instance = null;
+            state.Dispose();
+            state = null;
 
             try {
                 Console.WriteLine($"##### Re-measuring...");
@@ -370,7 +370,26 @@ namespace EcoBand {
         }
     }
 
-    class TimerState {
+    class TimerState : IDisposable {
         public Timer instance;
+        private bool _disposed;
+
+        TimerState() {
+            _disposed = false;
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!_disposed && disposing) {
+                instance.Dispose();
+                instance = null;
+
+                _disposed = true;
+            }
+        }
     }
 }
