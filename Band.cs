@@ -12,7 +12,6 @@ namespace EcoBand {
             Device = device;
         }
 
-
         /**************************************************************************
 
             Static properties
@@ -45,12 +44,6 @@ namespace EcoBand {
             Private properties
 
          **************************************************************************/
-
-        private readonly IAdapter _adapter;
-        private readonly IBluetoothLE _ble;
-        private IService _mainService;
-        private IService _heartRateService;
-
 
         // Services
         private readonly Guid UUID_SV_MAIN = Guid.Parse("0000fee0-0000-1000-8000-00805f9b34fb");
@@ -86,74 +79,74 @@ namespace EcoBand {
         private readonly Guid UUID_DC_NOTIFY_CHARACTERISTIC_DETECTION = Guid.Parse("00002902-0000-1000-8000-00805f9b34fb");
 
 
-        // Notifications to receive from UUID_CH_NOTIFICATION
-        private readonly byte NOTIFY_NORMAL = 0x0;
-        private readonly byte NOTIFY_FIRMWARE_UPDATE_FAILED = 0x1;
-        private readonly byte NOTIFY_FIRMWARE_UPDATE_SUCCESS = 0x2;
-        private readonly byte NOTIFY_CONN_PARAM_UPDATE_FAILED = 0x3;
-        private readonly byte NOTIFY_CONN_PARAM_UPDATE_SUCCESS = 0x4;
-        private readonly byte NOTIFY_AUTHENTICATION_SUCCESS = 0x5;
-        private readonly byte NOTIFY_AUTHENTICATION_FAILED = 0x6;
-        private readonly byte NOTIFY_FITNESS_GOAL_ACHIEVED = 0x7;
-        private readonly byte NOTIFY_SET_LATENCY_SUCCESS = 0x8;
-        private readonly byte NOTIFY_RESET_AUTHENTICATION_FAILED = 0x9;
-        private readonly byte NOTIFY_RESET_AUTHENTICATION_SUCCESS = 0xa;
-        private readonly byte NOTIFY_FW_CHECK_FAILED = 0xb;
-        private readonly byte NOTIFY_FW_CHECK_SUCCESS = 0xc;
-        private readonly byte NOTIFY_STATUS_MOTOR_NOTIFY = 0xd;
-        private readonly byte NOTIFY_STATUS_MOTOR_CALL = 0xe;
-        private readonly byte NOTIFY_STATUS_MOTOR_DISCONNECT = 0xf;
-        private readonly byte NOTIFY_STATUS_MOTOR_SMART_ALARM = 0x10;
-        private readonly byte NOTIFY_STATUS_MOTOR_ALARM = 0x11;
-        private readonly byte NOTIFY_STATUS_MOTOR_GOAL = 0x12;
-        private readonly byte NOTIFY_STATUS_MOTOR_AUTH = 0x13;
-        private readonly byte NOTIFY_STATUS_MOTOR_SHUTDOWN = 0x14;
-        private readonly byte NOTIFY_STATUS_MOTOR_AUTH_SUCCESS = 0x15;
-        private readonly byte NOTIFY_STATUS_MOTOR_TEST = 0x16;
-        // 0x18 is returned when we cancel data sync, perhaps is an ack for this message
-        private readonly sbyte NOTIFY_UNKNOWN = Convert.ToSByte(-0x1);
-        private readonly byte NOTIFY_PAIR_CANCEL = 0xef;
-        private readonly byte NOTIFY_DEVICE_MALFUNCTION = 0xff;
-
+        // Commands to send to UUID_CH_HEART_RATE_CONTROL_POINT
+        private readonly byte[] HR_CP_START_HEART_RATE_SLEEP = { 0x15, 0x0, 01 };
+        private readonly byte[] HR_CP_STOP_HEART_RATE_SLEEP = { 0x15, 0x0, 0 };
+        private readonly byte[] HR_CP_START_HEART_RATE_CONTINUOUS = { 0x15, 0x1, 1 };
+        private readonly byte[] HR_CP_STOP_HEART_RATE_CONTINUOUS = { 0x15, 0x1, 0 };
+        private readonly byte[] HR_CP_START_HEART_RATE_MANUAL = { 0x15, 0x2, 1 };
+        private readonly byte[] HR_CP_STOP_HEART_RATE_MANUAL = { 0x15, 0x2, 0 };
 
         // Commands to send to UUID_CH_CONTROL_POINT
-        private readonly byte CP_SET_HEART_RATE_SLEEP = 0x0;
-        private readonly byte CP_SET_HEART_RATE_CONTINUOUS = 0x1;
-        private readonly byte CP_SET_HEART_RATE_MANUAL = 0x2;
-        private readonly byte CP_NOTIFY_REALTIME_STEPS = 0x3;
-        private readonly byte CP_SET_ALARM = 0x4;
-        private readonly byte CP_SET_GOAL = 0x5;
-        private readonly byte CP_FETCH_DATA = 0x6;
-        private readonly byte CP_SEND_FIRMWARE_INFO = 0x7;
-        private readonly byte CP_SEND_NOTIFICATION = 0x8;
-        private readonly byte CP_FACTORY_RESET = 0x9;
-        private readonly byte CP_SET_REALTIME_STEPS = 0x10;
-        private readonly byte CP_STOP_SYNC = 0x11;
-        private readonly byte CP_NOTIFY_SENSOR_DATA = 0x12;
-        private readonly byte CP_STOP_VIBRATION = 0x13;
-        private readonly byte CP_CONFIRM_SYNC = 0xA;
-        private readonly byte CP_SYNC = 0xB;
-        private readonly byte CP_REBOOT = 0xC;
-        private readonly byte CP_SET_THEME = 0xE;
-        private readonly byte CP_SET_WEAR_LOCATION = 0xF;
+        private readonly byte[] CP_STOP_VIBRATION = { 0x0 };
+        private readonly byte[] CP_START_VIBRATION_WITH_LED = { 0x1 };
+        private readonly byte[] CP_PAIR = { 0x2 };
+        private readonly byte[] CP_START_REALTIME_STEPS = { 0x3, 0x1 };
+        private readonly byte[] CP_STOP_REALTIME_STEPS = { 0x3, 0x1 };
+        private readonly byte[] CP_SET_ALARM = { 0x4 };
+        private readonly byte[] CP_SET_GOAL = { 0x5 };
+        private readonly byte[] CP_GET_ACTIVITY_DATA = { 0x6 };
+        private readonly byte[] CP_SEND_FIRMWARE_INFO = { 0x7 };
+        private readonly byte[] CP_SEND_NOTIFICATION = { 0x8 };
+        private readonly byte[] CP_FACTORY_RESET = { 0x9 };
+        private readonly byte[] CP_SET_REALTIME_STEPS = { 0x10 };
+        private readonly byte[] CP_STOP_SYNC = { 0x11 };
+        private readonly byte[] CP_NOTIFY_SENSOR_DATA = { 0x12 };
+        //  readonly byte[] CP_STOP_VIBRATION = { 0x13 };
+        private readonly byte[] CP_CONFIRM_SYNC_COMPLETED = { 0xA };
+        private readonly byte[] CP_SYNC = { 0xB };
+        private readonly byte[] CP_REBOOT = { 0xC };
+        private readonly byte[] CP_SET_THEME = { 0xE };
+        private readonly byte[] CP_SET_WEAR_LOCATION = { 0xF };
 
-        private readonly byte[] startHeartMeasurementManual = { 0x15, 0x2, 1 };
-        private readonly byte[] stopHeartMeasurementManual = { 0x15, 0x2, 0 };
-        private readonly byte[] startHeartMeasurementContinuous = { 0x15, 0x1, 1 };
-        private readonly byte[] stopHeartMeasurementContinuous = { 0x15, 0x1, 0 };
-        private readonly byte[] startHeartMeasurementSleep = { 0x15, 0x0, 1 };
-        private readonly byte[] stopHeartMeasurementSleep = { 0x15, 0x0, 0 };
-
-
-        // Test commands to send to UUID_CH_TEST
-        private readonly byte TEST_REMOTE_DISCONNECT = 0x1;
-        private readonly byte TEST_SELFTEST = 0x2;
-        private readonly byte TEST_NOTIFICATION = 0x3;
-        private readonly byte TEST_WRITE_MD5 = 0x4;
-        private readonly byte TEST_DISCONNECTED_REMINDER = 0x5;
+        // Commands to send to UUID_CH_TEST
+        private readonly byte[] TEST_REMOTE_DISCONNECT = { 0x1 };
+        private readonly byte[] TEST_SELFTEST = { 0x2 };
+        private readonly byte[] TEST_NOTIFICATION = { 0x3 };
+        private readonly byte[] TEST_WRITE_MD5 = { 0x4 };
+        private readonly byte[] TEST_DISCONNECTED_REMINDER = { 0x5 };
 
 
-        // Battery status
+        // Responses from UUID_CH_NOTIFICATION
+        private readonly byte NOTIFICATION_NORMAL = 0x0;
+        private readonly byte NOTIFICATION_FIRMWARE_UPDATE_FAILED = 0x1;
+        private readonly byte NOTIFICATION_FIRMWARE_UPDATE_SUCCESS = 0x2;
+        private readonly byte NOTIFICATION_CONNECTION_PARAM_UPDATE_FAILED = 0x3;
+        private readonly byte NOTIFICATION_CONNECTION_PARAM_UPDATE_SUCCESS = 0x4;
+        private readonly byte NOTIFICATION_AUTHENTICATION_SUCCESS = 0x5;
+        private readonly byte NOTIFICATION_AUTHENTICATION_FAILED = 0x6;
+        private readonly byte NOTIFICATION_FITNESS_GOAL_ACHIEVED = 0x7;
+        private readonly byte NOTIFICATION_SET_LATENCY_SUCCESS = 0x8;
+        private readonly byte NOTIFICATION_RESET_AUTHENTICATION_FAILED = 0x9;
+        private readonly byte NOTIFICATION_RESET_AUTHENTICATION_SUCCESS = 0xa;
+        private readonly byte NOTIFICATION_FW_CHECK_FAILED = 0xb;
+        private readonly byte NOTIFICATION_FW_CHECK_SUCCESS = 0xc;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_NOTIFY = 0xd;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_CALL = 0xe;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_DISCONNECTED = 0xf;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_SMART_ALARM = 0x10;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_ALARM = 0x11;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_GOAL = 0x12;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_AUTH = 0x13;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_SHUTDOWN = 0x14;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_AUTH_SUCCESS = 0x15;
+        private readonly byte NOTIFICATION_STATUS_MOTOR_TEST = 0x16;
+        private readonly byte NOTIFICATION_DATA_SYNC_CANCELED = 0x18;
+        private readonly sbyte NOTIFICATION_UNKNOWN = Convert.ToSByte(-0x1);
+        private readonly byte NOTIFICATION_PAIR_CANCELED = 0xef;
+        private readonly byte NOTIFICATION_DEVICE_MALFUNCTION = 0xff;
+
+        // Responses from UUID_CH_BATTERY
         private readonly byte BATTERY_NORMAL = 0;
         private readonly byte BATTERY_LOW = 1;
         private readonly byte BATTERY_CHARGING = 2;
@@ -184,7 +177,10 @@ namespace EcoBand {
  
         public async Task<bool> StartMeasuringSteps() {
             try {
-                return await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
+                bool suscribed;
+                bool startedMeasurement;
+
+                suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
                     byte[] stepsBytes;
                     int stepsValue;
 
@@ -193,6 +189,9 @@ namespace EcoBand {
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
                 });
+                startedMeasurement = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
+
+                return suscribed && startedMeasurement;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error subscribing to steps: {ex.Message}");
@@ -204,6 +203,8 @@ namespace EcoBand {
         public async Task<bool> StartMeasuringHeartRate() {
             UserProfile userProfile;
             string address;
+            bool wroteUserInfo;
+            bool suscribed;
 
             try {
                 Console.WriteLine("##### Trying to get heart rate...");
@@ -211,8 +212,8 @@ namespace EcoBand {
                 userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 21, 182, 76, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
 
-                await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
-                await SubscribeToHeartRate((o, arguments) => {
+                wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
+                suscribed = await SubscribeToHeartRate((o, arguments) => {
                     byte[] heartRateBytes;
                     int heartRateValue;
 
@@ -222,7 +223,7 @@ namespace EcoBand {
                     Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
                 });
 
-                return true;
+                return wroteUserInfo && suscribed;
             }
             catch (Exception ex) { 
                 Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
@@ -235,18 +236,18 @@ namespace EcoBand {
             try {
                 IService service;
                 ICharacteristic controlPoint;
+                bool suscribed;
+                bool stoppedMeasurement;
+                bool startedMeasurement;
 
                 service = await GetService(UUID_SV_HEART_RATE);
                 controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
 
-                await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
+                suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
+                stoppedMeasurement = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+                startedMeasurement = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
 
-                // await controlPoint.WriteAsync(stopHeartMeasurementManual);
-                // await controlPoint.WriteAsync(stopHeartMeasurementSleep);
-                await WriteToCharacteristic(stopHeartMeasurementContinuous, controlPoint);
-                await WriteToCharacteristic(startHeartMeasurementContinuous, controlPoint);
-
-                return true;
+                return suscribed && stoppedMeasurement && startedMeasurement;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
@@ -332,9 +333,7 @@ namespace EcoBand {
                 Console.WriteLine("##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
 
                 if (characteristic.CanWrite) {
-                    await characteristic.WriteAsync(data);
-
-                    return true;
+                    return await characteristic.WriteAsync(data);
                 }
 
                 Console.WriteLine($"##### Characteristic {characteristic.Uuid} does bot support write");

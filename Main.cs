@@ -289,6 +289,7 @@ namespace EcoBand {
                 // int steps = await _device.GetSteps();
                 // int steps = 1000;
                 await _device.StartMeasuringHeartRate();
+                await _device.StartMeasuringSteps();
 
                 // Console.WriteLine($"##### STEPS: {steps}");
                 // .WriteLine($"##### HEART RATE: {heartRate}");
