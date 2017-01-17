@@ -37,7 +37,8 @@ namespace EcoBand {
          **************************************************************************/
 
         public readonly IDevice Device;
-
+        public event EventHandler<MeasureEventArgs> Steps;
+        public event EventHandler<MeasureEventArgs> HeartRate;
 
         /**************************************************************************
 
@@ -153,6 +154,8 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGING_FULL = 3;
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
+        private bool receivedHeartRate = false;
+
 
         /**************************************************************************
 
@@ -183,11 +186,15 @@ namespace EcoBand {
                 suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, (o, arguments) => {
                     byte[] stepsBytes;
                     int stepsValue;
+                    EventHandler<MeasureEventArgs> steps;
 
                     stepsBytes = arguments.Characteristic.Value;
                     stepsValue = DecodeSteps(stepsBytes);
+                    steps = Steps;
 
                     Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
+
+                    if (steps != null) steps(this, new MeasureEventArgs(stepsValue));
                 });
                 startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
 
@@ -216,11 +223,17 @@ namespace EcoBand {
                 suscribed = await SubscribeToHeartRate((o, arguments) => {
                     byte[] heartRateBytes;
                     int heartRateValue;
+                    EventHandler<MeasureEventArgs> heartRate;
 
                     heartRateBytes = arguments.Characteristic.Value;
                     heartRateValue = DecodeHeartRate(heartRateBytes);
+                    heartRate = HeartRate;
 
-                    if (heartRateValue != 0) Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
+                    if (heartRateValue != 0) { 
+                        Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
+
+                        if (heartRate != null) heartRate(this, new MeasureEventArgs(heartRateValue));
+                    }
                 });
 
                 return wroteUserInfo && suscribed;
@@ -444,6 +457,18 @@ namespace EcoBand {
 
                 return false;
             }
+        }
+    }
+
+    public class MeasureEventArgs : EventArgs {
+        private readonly int _measure;
+
+        public MeasureEventArgs(int measure) {
+            _measure = measure;
+        }
+
+        public int Measure {
+            get { return _measure; }
         }
     }
 }

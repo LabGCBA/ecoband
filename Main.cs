@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +28,6 @@ namespace EcoBand {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
-            _timer = new System.Timers.Timer(10000);
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -37,7 +35,6 @@ namespace EcoBand {
             _adapter.DeviceDiscovered += OnDeviceDiscovered;
             _adapter.DeviceDisconnected += OnDeviceDisconnected;
             _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
-            _timer.Elapsed += OnTimedEvent;
         }
 
         ~Main() {
@@ -58,7 +55,8 @@ namespace EcoBand {
         private TextView _heartRateLabel;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
-        private System.Timers.Timer _timer;
+        private System.Threading.Timer _measurements;
+        private const int _measurementInterval = 10000;
         private const int _requestEnableBluetooth = 2;
 
 
@@ -109,28 +107,57 @@ namespace EcoBand {
         private void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
             _device = null;
 
-            Console.WriteLine($"##### Disconnected from device {e.Device.Name}");
+            Console.WriteLine("##### Trying to reconnect...");
+
+            try {
+                CheckConnection().NoAwait();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error connecting to device: {ex.Message}");
+            }
         }
 
         private void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
+            _device = null;
+
             Console.WriteLine($"##### Device {e.Device.Name} disconnected :(");
-            Console.WriteLine("Trying to reconnect...");
+            Console.WriteLine("##### Trying to reconnect...");
 
             try {
-                Connect().NoAwait();
+                CheckConnection().NoAwait();
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error: {ex.Message}");
+                Console.WriteLine($"##### Error connecting to device: {ex.Message}");
             }
         }
 
-        private async void OnTimedEvent(object source, ElapsedEventArgs e) {
+        private void OnMeasurementTime (object timerState) {
+            TimerState state;
+
+            state = (TimerState) timerState;
+
+            state.instance.Dispose();
+            state.instance = null;
+
             try {
-                await _device.StartMeasuringHeartRate();
+                Console.WriteLine($"##### Re-measuring...");
+
+                SetTimer(_measurementInterval);
+                StartMeasuring().NoAwait();
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
+                Console.WriteLine($"##### Error starting measurements: {ex.Message}");
             }
+        }
+
+        private void OnStepsChange(object sender, MeasureEventArgs e) {
+            Console.WriteLine($"##### Received steps value: {e.Measure}");
+        }
+
+        private void OnHeartRateChange(object sender, MeasureEventArgs e) {
+            RunOnUiThread(() => {
+                _heartRateLabel.Text = e.Measure.ToString();
+            });
         }
 
 
@@ -238,14 +265,10 @@ namespace EcoBand {
             }
 
             _device = new Band(_device.Device);
-            _userDialogs.ShowSuccess("Conectado a Mi Band");
+            // _userDialogs.ShowSuccess("Conectado a Mi Band");
 
-            try {
-                await StartMeasuring();
-            }
-            catch (Exception ex) { 
-                Console.WriteLine($"##### Error: {ex.Message}");
-            }
+            SetTimer(_measurementInterval);
+            SetMeasurementEventHandlers().NoAwait();
         }
 
         private async Task Disconnect(Band band) {
@@ -261,6 +284,28 @@ namespace EcoBand {
             }
             finally {
                 _userDialogs.HideLoading();
+            }
+        }
+
+        private void SetTimer(int time) { 
+            TimerCallback timerDelegate;
+            TimerState state;
+
+            timerDelegate = new TimerCallback(OnMeasurementTime);
+            state = new TimerState();
+            _measurements = new Timer(timerDelegate, state, time, time);
+            state.instance = _measurements;
+        }
+
+        private async Task SetMeasurementEventHandlers() { 
+            try {
+                _device.Steps += OnStepsChange;
+                _device.HeartRate += OnHeartRateChange;
+
+                await StartMeasuring();
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error: {ex.Message}");
             }
         }
 
@@ -323,5 +368,9 @@ namespace EcoBand {
 
             CheckConnection().NoAwait();
         }
+    }
+
+    class TimerState {
+        public Timer instance;
     }
 }
