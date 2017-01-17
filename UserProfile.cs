@@ -1,44 +1,54 @@
 ﻿using System;
+using System.IO;
 
 namespace EcoBand {
+    /**
+     *
+     *  Code from https://github.com/pangliang/miband-sdk-android
+     *  MIT Licensed
+     * 
+     *  Ported to C# (original in java)
+     * 
+     **/
+
     public class UserProfile {
         public static readonly int GENDER_MALE = 1;
         public static readonly int GENDER_FEMALE = 0;
 
-        private int mUid;
-        private byte mGender;
-        private byte mAge;
-        private byte mHeight;
-        private byte mWeight;
-        private String mAlias = "";
-        private byte mType;
+        private int _uuid;
+        private byte _gender;
+        private byte _age;
+        private byte _height;
+        private byte _weight;
+        private string _alias = "";
+        private byte _type;
 
-        public UserProfile(int uid, int gender, int age, int height, int weight, String alias, int type) {
-            mUid = uid;
-            mGender = (byte) gender;
-            mAge = (byte) age;
-            mHeight = (byte) height;
-            mWeight = (byte) weight;
-            mAlias = alias;
-            mType = (byte) type;
+        public UserProfile(int uuid, int gender, int age, int height, int weight, string alias, int type) {
+            _uuid = uuid;
+            _gender = (byte) gender;
+            _age = (byte) age;
+            _height = (byte) height;
+            _weight = (byte) weight;
+            _alias = alias;
+            _type = (byte) type;
         }
 
         public UserProfile(byte[] data) {
             if (data.Length >= 20) {
-                mUid = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-                mGender = data[4];
-                mAge = data[5];
-                mHeight = data[6];
-                mWeight = data[7];
-                mType = data[8];
+                _uuid = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+                _gender = data[4];
+                _age = data[5];
+                _height = data[6];
+                _weight  = data[7];
+                _type = data[8];
 
                 try {
-                    mAlias = System.Text.Encoding.UTF8.GetString(data, 9, 8);
+                    _alias = System.Text.Encoding.UTF8.GetString(data, 9, 8);
                 }
                 catch (Exception ex) {
-                    mAlias = "";
+                    _alias = "";
 
-                    Console.WriteLine($"##### Error: {ex.Message}");
+                    Console.WriteLine($"##### Error getting alias: {ex.Message}");
                 }
             }
         }
@@ -47,14 +57,71 @@ namespace EcoBand {
             return new UserProfile[size];
         }
 
-        public byte[] getBytes(String address) {
-            byte crcb;
-            byte[] aliasBytes;
+        public int Uuid {
+            get {
+                return _uuid;
+            }
+        }
+
+        public byte Gender {
+            get {
+                return _gender;
+            }
+        }
+
+        public byte Age {
+            get {
+                return _age;
+            }
+        }
+
+        public int Height {
+            get {
+                return (_height & 0xFF);
+            }
+        }
+
+        public int Weight {
+            get {
+                return _weight & 0xFF;
+            }
+        }
+
+        public String Alias {
+            get {
+                return _alias;
+            }
+        }
+
+        public byte Type {
+            get {
+                return _type;
+            }
+        }
+
+        public byte[] toByteArray(string address) {
+            byte crcByte;
             byte[] crcSequence;
-            System.IO.MemoryStream buffer;
+            MemoryStream buffer;
+
+            buffer = getBuffer(20, address);
+            crcSequence = new byte[19];
+
+            for (int i = 0; i < crcSequence.Length; i++) crcSequence[i] = buffer.ToArray()[i];
+
+            crcByte = (byte) (getCRC8(crcSequence) ^ Int16.Parse(address.Substring(address.Length - 2), System.Globalization.NumberStyles.HexNumber) & 0xFF);
+
+            buffer.WriteByte(crcByte);
+
+            return buffer.ToArray();
+        }
+
+        private MemoryStream getBuffer(int size, string address) { 
+            MemoryStream buffer;
+            byte[] aliasBytes;
 
             try {
-                aliasBytes = System.Text.Encoding.UTF8.GetBytes(mAlias);
+                aliasBytes = System.Text.Encoding.UTF8.GetBytes(_alias);
             }
             catch (Exception ex) {
                 aliasBytes = new byte[0];
@@ -62,45 +129,40 @@ namespace EcoBand {
                 Console.WriteLine($"##### Error: {ex.Message}");
             }
 
-            buffer = new System.IO.MemoryStream(20);
+            buffer = new MemoryStream(size);
 
-            buffer.WriteByte((byte) mUid);
-            buffer.WriteByte((byte) (mUid >> 8));
-            buffer.WriteByte((byte) (mUid >> 16));
-            buffer.WriteByte((byte) (mUid >> 24));
-            buffer.WriteByte(mGender);
-            buffer.WriteByte(mAge);
-            buffer.WriteByte(mHeight);
-            buffer.WriteByte(mWeight);
-            buffer.WriteByte(mType);
+            buffer.WriteByte((byte) _uuid);
+            buffer.WriteByte((byte) (_uuid >> 8));
+            buffer.WriteByte((byte) (_uuid >> 16));
+            buffer.WriteByte((byte) (_uuid >> 24));
+            buffer.WriteByte(_gender);
+            buffer.WriteByte(_age);
+            buffer.WriteByte(_height);
+            buffer.WriteByte(_weight);
+            buffer.WriteByte(_type);
 
-            if (address.StartsWith("88:0F:10", StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(5);
-            else if (address.StartsWith("C8:0F:10", StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(4);
-            else buffer.WriteByte(0);
+            if (address.StartsWith(Band.MAC_ADDRESS_FILTER[0], StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(5);
+            else if (address.StartsWith(Band.MAC_ADDRESS_FILTER[1], StringComparison.CurrentCultureIgnoreCase)) buffer.WriteByte(4);
+            else buffer.WriteByte(4);
 
             buffer.WriteByte(0);
 
             foreach (byte item in aliasBytes) buffer.WriteByte(item);
 
             if (aliasBytes.Length <= 8) {
-                byte[] pad = new byte[8 - aliasBytes.Length];
+                byte[] pad;
+
+                pad = new byte[8 - aliasBytes.Length];
 
                 foreach (byte item in pad) buffer.WriteByte(item);
+
             }
             else {
                 buffer.WriteByte(0);
                 buffer.WriteByte(8);
             }
 
-            crcSequence = new byte[19];
-
-            for (int i = 0; i < crcSequence.Length; i++) crcSequence[i] = buffer.ToArray()[i];
-
-            crcb = (byte) (getCRC8(crcSequence) ^ Int16.Parse(address.Substring(address.Length - 2), System.Globalization.NumberStyles.HexNumber) & 0xFF);
-
-            buffer.WriteByte(crcb);
-
-            return buffer.ToArray();
+            return buffer;
         }
 
         private int getCRC8(byte[] seq) {
@@ -112,8 +174,9 @@ namespace EcoBand {
                 byte extract = seq[i++];
 
                 for (byte tempI = 8; tempI != 0; tempI--) {
-                    byte sum = (byte) ((crc & 0xFF) ^ (extract & 0xFF));
+                    byte sum;
 
+                    sum = (byte) ((crc & 0xFF) ^ (extract & 0xFF));
                     sum = (byte) ((sum & 0xFF) & 0x01);
                     crc = (byte) ((crc & 0xFF) >> 1);
 

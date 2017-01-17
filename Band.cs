@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Android.Bluetooth;
 using Plugin.BLE.Abstractions.Contracts;
+using Plugin.BLE.Abstractions.EventArgs;
 
 namespace EcoBand {
     public class Band {
@@ -167,7 +168,7 @@ namespace EcoBand {
          **************************************************************************/
 
         public async Task<int> GetSteps() {
-            byte[] steps = await GetData(UUID_CH_REALTIME_STEPS);
+            byte[] steps = await ReadFromCharacteristic(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN);
 
             return DecodeSteps(steps);
         }
@@ -177,32 +178,20 @@ namespace EcoBand {
         }
 
         public async Task<bool> SubscribeToSteps(EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
-            return await SubscribeTo(UUID_CH_REALTIME_STEPS, callback);
+            return await SubscribeTo(UUID_CH_REALTIME_STEPS, UUID_SV_MAIN, callback);
         }
 
-        public async Task<int> GetHeartRate() {
+        public async Task<bool> StartMeasuringHeartRate() {
             UserProfile userProfile;
-            IService mainService;
-            IService heartRateService;
-            ICharacteristic heartRateCharacteristic;
             string address;
 
             try {
                 Console.WriteLine("##### Trying to get heart rate...");
 
-                userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 21, 182, 76, "Rita", 0);
-                heartRateService = await GetHeartRateService();
-                mainService = await GetMainService();
-
-                //await controlPoint.WriteAsync(stopHeartMeasurementSleep);
-                //await controlPoint.WriteAsync(stopHeartMeasurementContinuous);
-                //await controlPoint.WriteAsync(stopHeartMeasurementManual);
+                userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 21, 182, 76, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
 
-                Console.WriteLine($"##### About to write user info...");
-                await WriteToCharacteristic(userProfile.getBytes(address), UUID_CH_USER_INFO, mainService);
-
-                Console.WriteLine($"##### About to subscribe to heart rate...");
+                await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
                 await SubscribeToHeartRate((o, arguments) => {
                     Byte[] heartRateBytes;
                     int heartRateValue;
@@ -213,60 +202,29 @@ namespace EcoBand {
                     Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
                 });
 
-                await WriteToCharacteristic(startHeartMeasurementManual, UUID_CH_HEART_RATE_CONTROL_POINT, heartRateService);
-
-                // byte[] heartRate = await GetData(UUID_CH_HEART_RATE, service);
-                heartRateCharacteristic = await heartRateService.GetCharacteristicAsync(UUID_CH_HEART_RATE);
-
-                heartRateCharacteristic.ValueUpdated += ((o, arguments) => {
-                    Byte[] heartRateBytes;
-                    int heartRateValue;
-
-                    heartRateBytes = arguments.Characteristic.Value;
-                    heartRateValue = DecodeHeartRate(heartRateBytes);
-
-                    Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
-                });
-
-                return 0;
+                return true;
             }
             catch (Exception ex) { 
                 Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
 
-                return -2;
+                return false;
             }
         }
 
-        public int DecodeHeartRate(byte[] heartRate) {
-            if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
-            else {
-                Console.WriteLine("##### Received invalid heart rate value");
-                Console.WriteLine($"##### Byte array length: {heartRate.Count().ToString()}");
-                Console.WriteLine($"##### heartRate[0]: {heartRate[0].ToString()}");
-                Console.WriteLine($"##### heartRate[1]: {heartRate[1].ToString()}");
-
-                return (heartRate[0] & 0xff);
-            }
-        }
-
-        public async Task<bool> SubscribeToHeartRate(EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback) {
-            IService service;
-            ICharacteristic characteristic;
-
+        public async Task<bool> SubscribeToHeartRate(EventHandler<CharacteristicUpdatedEventArgs> callback) {
             try {
-                Console.WriteLine("##### Trying to subscribe to characteristic...");
+                IService service;
+                ICharacteristic controlPoint;
 
-                service = await GetHeartRateService();
-                characteristic = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE);
+                service = await GetService(UUID_SV_HEART_RATE);
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
 
-                characteristic.ValueUpdated += callback;
+                await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
 
-                await characteristic.StartUpdatesAsync();
-
-                // await controlPoint.WriteAsync(stopHeartMeasurementContinuous);
                 // await controlPoint.WriteAsync(stopHeartMeasurementManual);
                 // await controlPoint.WriteAsync(stopHeartMeasurementSleep);
-                await WriteToCharacteristic(startHeartMeasurementManual, UUID_CH_HEART_RATE_CONTROL_POINT, service);
+                await WriteToCharacteristic(stopHeartMeasurementContinuous, controlPoint);
+                await WriteToCharacteristic(startHeartMeasurementContinuous, controlPoint);
 
                 return true;
             }
@@ -284,46 +242,26 @@ namespace EcoBand {
 
          **************************************************************************/
 
-        private async Task<IService> GetMainService() {
+        private async Task<IService> GetService(Guid uuid) {
             try {
-                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
-
-                return _mainService;
+                return await Device.GetServiceAsync(uuid);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting main service: {ex.Message}");
+                Console.WriteLine($"##### Error getting service {uuid.ToString()}: {ex.Message}");
 
                 return null;
             }
         }
 
-        private async Task<IService> GetHeartRateService() {
+        private async Task<byte[]> ReadFromCharacteristic(ICharacteristic characteristic) {
             try {
-                if (_heartRateService == null) _heartRateService = await Device.GetServiceAsync(UUID_SV_HEART_RATE);
+                Console.WriteLine("##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
 
-                return _heartRateService;
-            }
-            catch (Exception ex) {
-                Console.WriteLine($"##### Error getting heart rate service: {ex.Message}");
+                if (characteristic.CanRead) return await characteristic.ReadAsync();
+
+                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does not support read");
 
                 return null;
-            }
-        }
-
-        private async Task<byte[]> GetData(Guid characteristic, IService customService = null) {
-            ICharacteristic data;
-            IService service;
-
-            if (customService == null) service = await GetMainService();
-            else service = customService;
-
-            try {
-                Console.WriteLine("##### Trying to get characteristic data...");
-
-                data = await service.GetCharacteristicAsync(characteristic);
-
-                if (data.CanRead) return await data.ReadAsync();
-                else return null;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
@@ -332,24 +270,56 @@ namespace EcoBand {
             }
         }
 
-        private async Task<bool> WriteToCharacteristic(byte[] data, Guid characteristicUUID, IService customService = null) {
+        private async Task<byte[]> ReadFromCharacteristic(Guid UUIDCharacteristic, IService service) {
+            ICharacteristic characteristic;
+
+            try {
+                Console.WriteLine("##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
+
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
+
+                return await ReadFromCharacteristic(characteristic);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+
+                return null;
+            }
+        }
+
+        private async Task<byte[]> ReadFromCharacteristic(Guid UUIDCharacteristic, Guid UUIDService) {
             ICharacteristic characteristic;
             IService service;
 
-            if (customService == null) service = await GetMainService();
-            else service = customService;
+            service = await GetService(UUIDService);
 
             try {
-                Console.WriteLine("##### Trying to write to characteristic...");
+                Console.WriteLine("##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
 
-                characteristic = await service.GetCharacteristicAsync(characteristicUUID);
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
-                if (characteristic.CanWrite) { 
+                return await ReadFromCharacteristic(characteristic);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+
+                return null;
+            }
+        }
+
+        private async Task<bool> WriteToCharacteristic(byte[] data, ICharacteristic characteristic) {
+            try {
+                Console.WriteLine("##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
+
+                if (characteristic.CanWrite) {
                     await characteristic.WriteAsync(data);
 
                     return true;
                 }
-                else return false;
+
+                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does bot support write");
+
+                return false;
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
@@ -358,17 +328,47 @@ namespace EcoBand {
             }
         }
 
-        private async Task<bool> SubscribeTo(Guid uuid, EventHandler<Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs> callback, IService customService = null) {
-            IService service;
+        private async Task<bool> WriteToCharacteristic(byte[] data, Guid UUIDCharacteristic, IService service) {
             ICharacteristic characteristic;
 
             try {
-                Console.WriteLine("##### Trying to subscribe to characteristic...");
+                Console.WriteLine("##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
 
-                if (customService == null) service = await GetMainService();
-                else service = customService;
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
-                characteristic = await service.GetCharacteristicAsync(uuid);
+                return await WriteToCharacteristic(data, characteristic);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        private async Task<bool> WriteToCharacteristic(byte[] data, Guid UUIDCharacteristic, Guid UUIDService) {
+            ICharacteristic characteristic;
+            IService service;
+
+            service = await GetService(UUIDService);
+
+            try {
+                Console.WriteLine("##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
+
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
+
+                return await WriteToCharacteristic(data, characteristic);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        private async Task<bool> SubscribeTo(ICharacteristic characteristic, EventHandler<CharacteristicUpdatedEventArgs> callback) {
+            try {
+                Console.WriteLine("##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
+
                 characteristic.ValueUpdated += callback;
 
                 await characteristic.StartUpdatesAsync();
@@ -379,6 +379,54 @@ namespace EcoBand {
                 Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
 
                 return false;
+            }
+        }
+
+        private async Task<bool> SubscribeTo(Guid UUIDCharacteristic, IService service, EventHandler<CharacteristicUpdatedEventArgs> callback) {
+            ICharacteristic characteristic;
+
+            try {
+                Console.WriteLine("##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
+
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
+
+                return await SubscribeTo(characteristic, callback);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        private async Task<bool> SubscribeTo(Guid UUIDCharacteristic, Guid UUIDService, EventHandler<CharacteristicUpdatedEventArgs> callback) {
+            IService service;
+            ICharacteristic characteristic;
+
+            try {
+                Console.WriteLine("##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
+
+                service = await GetService(UUIDService);
+                characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
+
+                return await SubscribeTo(characteristic, callback);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        private int DecodeHeartRate(byte[] heartRate) {
+            if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
+            else {
+                Console.WriteLine("##### Received invalid heart rate value");
+                Console.WriteLine($"##### Byte array length: {heartRate.Count().ToString()}");
+                Console.WriteLine($"##### heartRate[0]: {heartRate[0].ToString()}");
+                Console.WriteLine($"##### heartRate[1]: {heartRate[1].ToString()}");
+
+                return (heartRate[0] & 0xff);
             }
         }
     }

@@ -152,11 +152,7 @@ namespace EcoBand {
 
         private async void OnTimedEvent(object source, ElapsedEventArgs e) {
             try {
-                int heartRate = await _device.GetHeartRate();
-
-                _userDialogs.Alert(heartRate.ToString(), "Heart Rate");
-
-                Console.WriteLine($"##### HEART RATE: {heartRate}");
+                await _device.StartMeasuringHeartRate();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
@@ -292,12 +288,12 @@ namespace EcoBand {
 
                 // int steps = await _device.GetSteps();
                 // int steps = 1000;
-                int heartRate = await _device.GetHeartRate();
+                await _device.StartMeasuringHeartRate();
 
                 // Console.WriteLine($"##### STEPS: {steps}");
                 // .WriteLine($"##### HEART RATE: {heartRate}");
 
-                _heartRateLabel.Text = heartRate.ToString();
+                // _heartRateLabel.Text = heartRate.ToString();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error: {ex.Message}");
