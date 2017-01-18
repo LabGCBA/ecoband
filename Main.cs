@@ -199,35 +199,36 @@ namespace EcoBand {
             }
         }
 
+        private void EnableBluetooth() {
+            Intent intent;
+
+            intent = new Intent(BluetoothAdapter.ActionRequestEnable);
+
+            StartActivityForResult(intent, _requestEnableBluetooth);
+        }
+
         private async Task CheckConnection() {
             if (!_ble.IsOn) {
-                Context context;
-                BluetoothAdapter bluetoothAdapter;
-                bool enabled;
-
-                context = Application.Context;
-                bluetoothAdapter = (BluetoothAdapter) context.GetSystemService(BluetoothService);
-                enabled = bluetoothAdapter.Enable();
-
-                if (!enabled) _userDialogs.ShowError("No se pudo activar el bluetooth");
+                EnableBluetooth();
             }
-
-            if (IsPaired()) {
-                if (_adapter.ConnectedDevices.Count == 0) {
-                    try {
-                        await Connect();
+            else { 
+                if (IsPaired()) {
+                    if (_adapter.ConnectedDevices.Count == 0) {
+                        try {
+                            await Connect();
+                        }
+                        catch (Exception ex) {
+                            Console.WriteLine($"##### Error connecting to device: {ex.Message}");
+                        }
                     }
-                    catch (Exception ex) {
-                        Console.WriteLine($"##### Error connecting to device: {ex.Message}");
-                    }
+                    else Console.WriteLine("##### Device is connected");
                 }
-                else Console.WriteLine("##### Device is connected");
-            }
-            else {
-                Console.WriteLine("##### Band is not paired");
+                else {
+                    Console.WriteLine("##### Band is not paired");
 
-                await Discover();
-                CheckConnection().NoAwait();
+                    await Discover();
+                    CheckConnection().NoAwait();
+                }
             }
         }
 
@@ -401,6 +402,17 @@ namespace EcoBand {
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
 
             CheckConnection().NoAwait();
+        }
+
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
+            base.OnActivityResult(requestCode, resultCode, data);
+
+            if (requestCode == _requestEnableBluetooth) { 
+                if (resultCode == Result.Ok) CheckConnection().NoAwait();
+                else RunOnUiThread(() => {
+                    _userDialogs.ShowError("No es posible usar la aplicación sin Bluetooth");
+                });
+            }
         }
     }
 
