@@ -15,8 +15,10 @@ using Android.Bluetooth;
 
 using Acr.UserDialogs;
 
+using Plugin.Geolocator;
+using Plugin.Geolocator.Abstractions;
+
 using Plugin.BLE;
-using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
@@ -28,7 +30,6 @@ namespace EcoBand {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
-            _firstMeasurements = 0;
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -52,12 +53,10 @@ namespace EcoBand {
         private readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter;
         private readonly IBluetoothLE _ble;
         private Band _device;
-        private Button _connectButton;
         private TextView _heartRateLabel;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
         private Timer _measurements;
-        private int _firstMeasurements;
         private const int _measurementInterval = 15000;
         private const int _requestEnableBluetooth = 2;
 
@@ -202,34 +201,37 @@ namespace EcoBand {
 
         private async Task CheckConnection() {
             if (!_ble.IsOn) {
-                Intent enableIntent;
+                Context context;
+                BluetoothAdapter bluetoothAdapter;
+                bool enabled;
 
-                enableIntent = new Intent(BluetoothAdapter.ActionRequestEnable);
+                context = Application.Context;
+                bluetoothAdapter = (BluetoothAdapter) context.GetSystemService(BluetoothService);
+                enabled = bluetoothAdapter.Enable();
 
-                StartActivityForResult(enableIntent, _requestEnableBluetooth);
-                Discover();
+                if (!enabled) _userDialogs.ShowError("No se pudo activar el bluetooth");
+            }
+
+            if (IsPaired()) {
+                if (_adapter.ConnectedDevices.Count == 0) {
+                    try {
+                        await Connect();
+                    }
+                    catch (Exception ex) {
+                        Console.WriteLine($"##### Error connecting to device: {ex.Message}");
+                    }
+                }
+                else Console.WriteLine("##### Device is connected");
             }
             else {
-                if (IsPaired()) {
-                    if (_adapter.ConnectedDevices.Count == 0) {
-                        try {
-                            await Connect();
-                        }
-                        catch (Exception ex) {
-                            Console.WriteLine($"##### Error connecting to device: {ex.Message}");
-                        }
-                    }
-                    else Console.WriteLine("##### Device is connected");
-                }
-                else {
-                    Console.WriteLine("##### Band is not paired");
+                Console.WriteLine("##### Band is not paired");
 
-                    Discover();
-                }
+                await Discover();
+                CheckConnection().NoAwait();
             }
         }
 
-        private void Discover() {
+        private async Task Discover() {
             if (_ble.IsOn) {
                 Console.WriteLine("##### Bluetooth is on");
 
@@ -243,7 +245,7 @@ namespace EcoBand {
                     _userDialogs.ShowLoading("Buscando dispositivos...");
                 });
 
-                _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token).NoAwait();
+                await _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
             }
             else {
                 _userDialogs.Toast("Bluetooth está desactivado");

@@ -157,9 +157,8 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
         private IService _mainService;
-
-
         private List<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
+
 
         /**************************************************************************
 
