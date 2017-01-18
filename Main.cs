@@ -15,9 +15,6 @@ using Android.Bluetooth;
 
 using Acr.UserDialogs;
 
-using Plugin.Geolocator;
-using Plugin.Geolocator.Abstractions;
-
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
@@ -143,7 +140,6 @@ namespace EcoBand {
 
                 SetTimer(_measurementInterval);
                 StartMeasuring().NoAwait();
-                StartMeasuringLocation().NoAwait();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error starting measurements: {ex.Message}");
@@ -165,15 +161,6 @@ namespace EcoBand {
 
                 HideFirstMeasurementSpinner();
             });
-        }
-
-        private void OnLocationChange(object sender, PositionEventArgs e) {
-            Position position;
-
-            position = e.Position;
-
-            Console.WriteLine($"##### LATITUDE: {position.Latitude}");
-            Console.WriteLine($"##### LONGITUDE: {position.Longitude}");
         }
 
 
@@ -335,21 +322,6 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error setting device event handlers: {ex.Message}");
-            }
-        }
-
-        private async Task StartMeasuringLocation() {
-            IGeolocator locator;
-
-            try {
-                locator = CrossGeolocator.Current;
-                locator.DesiredAccuracy = 50;
-                locator.PositionChanged += OnLocationChange;
-
-                await locator.GetPositionAsync(10000);
-            }
-            catch (Exception ex) {
-                Console.WriteLine("Unable to get location, may need to increase timeout: " + ex);
             }
         }
 
