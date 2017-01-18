@@ -53,6 +53,8 @@ namespace EcoBand {
         private readonly IBluetoothLE _ble;
         private Band _device;
         private TextView _heartRateLabel;
+        private TextView _latitudeLabel;
+        private TextView _longitudeLabel;
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
         private Timer _measurements;
@@ -155,7 +157,6 @@ namespace EcoBand {
             Console.WriteLine($"##### Received steps value: {e.Measure}");
 
             HideFirstMeasurementSpinner();
-
         }
 
         private void OnHeartRateChange(object sender, MeasureEventArgs e) {
@@ -179,7 +180,10 @@ namespace EcoBand {
         }
 
         public void OnLocationChanged(Location location) {
-            string result = string.Format("Latitude = {0}, Longitude = {1}", location.Latitude, location.Longitude);
+            RunOnUiThread(() => {
+                _latitudeLabel.Text = location.Latitude.ToString();
+                _longitudeLabel.Text = location.Longitude.ToString();
+            });
 
             /*
             // demo geocoder
@@ -187,6 +191,8 @@ namespace EcoBand {
                 Geocoder geocoder = new Geocoder(this);
 
                 IList<Address> addresses = geocoder.GetFromLocation(location.Latitude, location.Longitude, 5);
+
+               addresses.ToList().ForEach((addr) => addrText.Append(addr.ToString() + "\r\n\r\n"));
             }).Start();
             */
         }
@@ -362,7 +368,7 @@ namespace EcoBand {
 
             string locationProvider = _locationManager.GetBestProvider(locationCriteria, true);
 
-            if (!string.IsNullOrEmpty(locationProvider)) _locationManager.RequestLocationUpdates(locationProvider, 2000, 1, this);
+            if (!string.IsNullOrEmpty(locationProvider)) _locationManager.RequestLocationUpdates(locationProvider, 10000, 1, this);
             else Log.Warn("LocationDemo", "Could not determine a location provider.");
         }
 
@@ -370,7 +376,6 @@ namespace EcoBand {
             try {
                 await _device.StartMeasuringHeartRate();
                 await _device.StartMeasuringSteps();
-                // await StartMeasuringLocation();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error starting measurements: {ex.Message}");
@@ -437,6 +442,8 @@ namespace EcoBand {
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
+            _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitude);
+            _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
             _locationManager = (LocationManager) GetSystemService(LocationService);
 
             CheckConnection().NoAwait();
