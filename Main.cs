@@ -91,8 +91,6 @@ namespace EcoBand {
         }
 
         private void OnDeviceConnected(object sender, DeviceEventArgs args) {
-            // TODO: Implement. Get needed services and characteristics, show data in UI.
-
             Console.WriteLine($"##### Connected to device {args.Device.Name}");
         }
 
@@ -145,6 +143,7 @@ namespace EcoBand {
 
                 SetTimer(_measurementInterval);
                 StartMeasuring().NoAwait();
+                StartMeasuringLocation().NoAwait();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error starting measurements: {ex.Message}");
@@ -166,6 +165,15 @@ namespace EcoBand {
 
                 HideFirstMeasurementSpinner();
             });
+        }
+
+        private void OnLocationChange(object sender, PositionEventArgs e) {
+            Position position;
+
+            position = e.Position;
+
+            Console.WriteLine($"##### LATITUDE: {position.Latitude}");
+            Console.WriteLine($"##### LONGITUDE: {position.Longitude}");
         }
 
 
@@ -283,7 +291,7 @@ namespace EcoBand {
 
             _device = new Band(_device.Device);
 
-            SetMeasurementEventHandlers().NoAwait();
+            SetDeviceEventHandlers().NoAwait();
         }
 
         private async Task Disconnect(Band band) {
@@ -316,7 +324,7 @@ namespace EcoBand {
             state.instance = _measurements;
         }
 
-        private async Task SetMeasurementEventHandlers() { 
+        private async Task SetDeviceEventHandlers() { 
             try {
                 _device.Steps += OnStepsChange;
                 _device.HeartRate += OnHeartRateChange;
@@ -326,7 +334,22 @@ namespace EcoBand {
                 SetTimer(_measurementInterval);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error setting measurement event handlers: {ex.Message}");
+                Console.WriteLine($"##### Error setting device event handlers: {ex.Message}");
+            }
+        }
+
+        private async Task StartMeasuringLocation() {
+            IGeolocator locator;
+
+            try {
+                locator = CrossGeolocator.Current;
+                locator.DesiredAccuracy = 50;
+                locator.PositionChanged += OnLocationChange;
+
+                await locator.GetPositionAsync(10000);
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Unable to get location, may need to increase timeout: " + ex);
             }
         }
 
@@ -334,6 +357,7 @@ namespace EcoBand {
             try {
                 await _device.StartMeasuringHeartRate();
                 await _device.StartMeasuringSteps();
+                // await StartMeasuringLocation();
             }
             catch (Exception ex) {
                 Console.WriteLine($"##### Error starting measurements: {ex.Message}");
