@@ -9,6 +9,8 @@ using Android.Content;
 // using Android.Runtime;
 // using Android.Views;
 using Android.Widget;
+using Android.Locations;
+using Android.Util;
 using Android.OS;
 using Android.Content.PM;
 using Android.Bluetooth;
@@ -23,7 +25,7 @@ using Plugin.BLE.Abstractions.Extensions;
 namespace EcoBand {
     [Activity(Label = "Mi Band", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
 
-    public class Main : Activity {
+    public class Main : Activity, ILocationListener {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
@@ -54,6 +56,7 @@ namespace EcoBand {
         private CancellationTokenSource _cancellationTokenSource;
         private IUserDialogs _userDialogs;
         private Timer _measurements;
+        private LocationManager _locationManager;
         private const int _measurementInterval = 15000;
         private const int _requestEnableBluetooth = 2;
 
@@ -69,7 +72,7 @@ namespace EcoBand {
         }
 
         private async void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
-            if (Band.NAME_FILTER.Contains(args.Device.Name) && 
+            if (Band.NAME_FILTER.Contains(args.Device.Name) &&
                 Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) args.Device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
                 Console.WriteLine($"##### Discovered device {args.Device.Name}");
 
@@ -79,7 +82,7 @@ namespace EcoBand {
                     await StopScanning();
                     await Connect();
                 }
-                catch (Exception ex) { 
+                catch (Exception ex) {
                     Console.WriteLine($"##### Error: {ex.Message}");
 
                     return;
@@ -127,7 +130,7 @@ namespace EcoBand {
             }
         }
 
-        private void OnMeasurementTime (object timerState) {
+        private void OnMeasurementTime(object timerState) {
             TimerState state;
 
             state = (TimerState) timerState;
@@ -163,6 +166,31 @@ namespace EcoBand {
             });
         }
 
+        public void OnProviderDisabled(string provider) {
+
+        }
+
+        public void OnProviderEnabled(string provider) {
+
+        }
+
+        public void OnStatusChanged(string provider, Availability status, Bundle extras) {
+
+        }
+
+        public void OnLocationChanged(Location location) {
+            string result = string.Format("Latitude = {0}, Longitude = {1}", location.Latitude, location.Longitude);
+
+            /*
+            // demo geocoder
+            new Thread(() => {
+                Geocoder geocoder = new Geocoder(this);
+
+                IList<Address> addresses = geocoder.GetFromLocation(location.Latitude, location.Longitude, 5);
+            }).Start();
+            */
+        }
+
 
         /**************************************************************************
 
@@ -187,7 +215,7 @@ namespace EcoBand {
         }
 
         private void CleanupCancellationToken() {
-            if (_cancellationTokenSource != null) { 
+            if (_cancellationTokenSource != null) {
                 _cancellationTokenSource.Dispose();
 
                 _cancellationTokenSource = null;
@@ -206,7 +234,7 @@ namespace EcoBand {
             if (!_ble.IsOn) {
                 EnableBluetooth();
             }
-            else { 
+            else {
                 if (IsPaired()) {
                     if (_adapter.ConnectedDevices.Count == 0) {
                         try {
@@ -270,7 +298,7 @@ namespace EcoBand {
 
                 return;
             }
-            finally { 
+            finally {
                 RunOnUiThread(() => {
                     _userDialogs.HideLoading();
                 });
@@ -301,7 +329,7 @@ namespace EcoBand {
             }
         }
 
-        private void SetTimer(int time) { 
+        private void SetTimer(int time) {
             TimerCallback timerDelegate;
             TimerState state;
 
@@ -311,7 +339,7 @@ namespace EcoBand {
             state.instance = _measurements;
         }
 
-        private async Task SetDeviceEventHandlers() { 
+        private async Task SetDeviceEventHandlers() {
             try {
                 _device.Steps += OnStepsChange;
                 _device.HeartRate += OnHeartRateChange;
@@ -323,6 +351,19 @@ namespace EcoBand {
             catch (Exception ex) {
                 Console.WriteLine($"##### Error setting device event handlers: {ex.Message}");
             }
+        }
+
+        private void StartMeasuringLocation() {
+            Criteria locationCriteria;
+
+            locationCriteria = new Criteria();
+            locationCriteria.Accuracy = Accuracy.Fine;
+            locationCriteria.PowerRequirement = Power.NoRequirement;
+
+            string locationProvider = _locationManager.GetBestProvider(locationCriteria, true);
+
+            if (!string.IsNullOrEmpty(locationProvider)) _locationManager.RequestLocationUpdates(locationProvider, 2000, 1, this);
+            else Log.Warn("LocationDemo", "Could not determine a location provider.");
         }
 
         private async Task StartMeasuring() {
@@ -342,7 +383,7 @@ namespace EcoBand {
             });
         }
 
-        private void HideFirstMeasurementSpinner() { 
+        private void HideFirstMeasurementSpinner() {
             RunOnUiThread(() => {
                 _userDialogs.HideLoading();
             });
@@ -396,19 +437,33 @@ namespace EcoBand {
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
+            _locationManager = (LocationManager) GetSystemService(LocationService);
 
             CheckConnection().NoAwait();
+            StartMeasuringLocation();
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
             base.OnActivityResult(requestCode, resultCode, data);
 
-            if (requestCode == _requestEnableBluetooth) { 
+            if (requestCode == _requestEnableBluetooth) {
                 if (resultCode == Result.Ok) CheckConnection().NoAwait();
                 else RunOnUiThread(() => {
                     _userDialogs.ShowError("No es posible usar la aplicación sin Bluetooth");
                 });
             }
+        }
+
+        protected override void OnPause() {
+            base.OnPause();
+
+            _locationManager.RemoveUpdates(this);
+        }
+
+        protected override void OnResume() {
+            base.OnResume();
+
+            StartMeasuringLocation();
         }
     }
 
