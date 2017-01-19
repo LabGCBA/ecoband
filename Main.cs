@@ -178,6 +178,8 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Starting new steps cycle...");
 
             try {
+                if (!IsPaired()) CheckConnection().NoAwait();
+
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
@@ -284,13 +286,11 @@ namespace EcoBand {
         }
 
         private void CheckGPS() {
-            if (_locationManager.IsProviderEnabled(LocationManager.GpsProvider)) _userDialogs.ShowError("El GPS está desactivado");
+            if (!_locationManager.IsProviderEnabled(LocationManager.GpsProvider)) _userDialogs.ShowError("El GPS está desactivado");
         }
 
         private async Task CheckConnection() {
-            if (!_ble.IsOn) {
-                EnableBluetooth();
-            }
+            if (!_ble.IsOn) EnableBluetooth();
             else {
                 if (IsPaired()) {
                     if (_adapter.ConnectedDevices.Count == 0) {
@@ -305,14 +305,11 @@ namespace EcoBand {
                             HideFirstMeasurementSpinner();
                         }
                     }
-                    else Log.Debug("MAIN", "##### Device is connected");
                 }
-                else {
+                else if (!_adapter.IsScanning) {
                     Log.Debug("MAIN", "##### Band is not paired");
 
                     await Discover();
-
-                    CheckConnection().NoAwait();
                 }
             }
         }
@@ -321,23 +318,23 @@ namespace EcoBand {
             if (_ble.IsOn) {
                 Log.Debug("MAIN", "##### Bluetooth is on");
 
-                if (_adapter.IsScanning) return;
+                if (!_adapter.IsScanning) { 
+                    _cancellationTokenSource = new CancellationTokenSource();
 
-                _cancellationTokenSource = new CancellationTokenSource();
+                    Log.Debug("MAIN", "##### Beginning scan...");
 
-                Log.Debug("MAIN", "##### Beginning scan...");
+                    RunOnUiThread(() => {
+                        _userDialogs.ShowLoading("Buscando dispositivos...");
+                    });
 
-                RunOnUiThread(() => {
-                    _userDialogs.ShowLoading("Buscando dispositivos...");
-                });
-
-                await _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
+                    await _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
+                    await CheckConnection();
+                }
             }
-            else {
-                _userDialogs.Toast("Bluetooth está desactivado");
 
-                Log.Debug("MAIN", "##### Bluetooth is not on :(");
-            }
+            Log.Debug("MAIN", "##### Bluetooth is not on :(");
+
+            _userDialogs.Toast("Bluetooth está desactivado");
         }
 
         private async Task Connect() {
