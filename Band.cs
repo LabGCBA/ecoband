@@ -274,9 +274,9 @@ namespace EcoBand {
         }
 
         private async Task<byte[]> ReadFromCharacteristic(ICharacteristic characteristic) {
-            try {
-                Log.Debug("BAND", "##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
+            Log.Debug("BAND", "##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
 
+            try {
                 if (characteristic.CanRead) return await characteristic.ReadAsync();
 
                 Log.Debug("BAND", $"##### Characteristic {characteristic.Uuid} does not support read");
@@ -293,9 +293,9 @@ namespace EcoBand {
         private async Task<byte[]> ReadFromCharacteristic(Guid UUIDCharacteristic, IService service) {
             ICharacteristic characteristic;
 
-            try {
-                Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
+            Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
 
+            try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
@@ -313,9 +313,9 @@ namespace EcoBand {
 
             service = await GetService(UUIDService);
 
-            try {
-                Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
+            Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
 
+            try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
@@ -328,9 +328,9 @@ namespace EcoBand {
         }
 
         private async Task<bool> WriteToCharacteristic(byte[] data, ICharacteristic characteristic) {
-            try {
-                Log.Debug("BAND", "##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
+            Log.Debug("BAND", "##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
 
+            try {
                 if (characteristic.CanWrite) return await characteristic.WriteAsync(data);
 
                 Log.Debug("BAND", $"##### Characteristic {characteristic.Uuid} does not support write");
@@ -347,9 +347,9 @@ namespace EcoBand {
         private async Task<bool> WriteToCharacteristic(byte[] data, Guid UUIDCharacteristic, IService service) {
             ICharacteristic characteristic;
 
-            try {
-                Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
+            Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
 
+            try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await WriteToCharacteristic(data, characteristic);
@@ -367,9 +367,9 @@ namespace EcoBand {
 
             service = await GetService(UUIDService);
 
-            try {
-                Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
+            Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
 
+            try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await WriteToCharacteristic(data, characteristic);
@@ -382,9 +382,9 @@ namespace EcoBand {
         }
 
         private async Task<bool> SubscribeTo(ICharacteristic characteristic, EventHandler<CharacteristicUpdatedEventArgs> callback) {
-            try {
-                Log.Debug("BAND", "##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", "##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
 
+            try {
                 if (!_eventHandlers.Contains(callback)) { 
                     characteristic.ValueUpdated += callback;
 
@@ -405,9 +405,9 @@ namespace EcoBand {
         private async Task<bool> SubscribeTo(Guid UUIDCharacteristic, IService service, EventHandler<CharacteristicUpdatedEventArgs> callback) {
             ICharacteristic characteristic;
 
-            try {
-                Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
 
+            try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await SubscribeTo(characteristic, callback);
@@ -423,9 +423,9 @@ namespace EcoBand {
             IService service;
             ICharacteristic characteristic;
 
-            try {
-                Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
 
+            try {
                 service = await GetService(UUIDService);
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 

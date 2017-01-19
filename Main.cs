@@ -149,10 +149,10 @@ namespace EcoBand {
 
             state = null;
 
-            try {
-                Log.Debug("MAIN", "##### Starting new measurement cycle...");
+            Log.Debug("MAIN", "##### Starting new measurement cycle...");
 
-                SetMeasurementsTimer(_measurementInterval);
+            try {
+                SetMeasurementsTimer();
                 StartMeasuring().NoAwait();
             }
             catch (Exception ex) {
@@ -175,9 +175,9 @@ namespace EcoBand {
             state = null;
             now = DateTime.Now;
 
-            try {
-                Log.Debug("MAIN", "##### Starting new steps cycle...");
+            Log.Debug("MAIN", "##### Starting new steps cycle...");
 
+            try {
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
@@ -190,7 +190,7 @@ namespace EcoBand {
                     _stepsBuffer = 0;
                 }
 
-                SetStepsTimer(_stepsInterval);
+                SetStepsTimer();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error starting a new steps cycle: {ex.Message}");
@@ -294,11 +294,15 @@ namespace EcoBand {
             else {
                 if (IsPaired()) {
                     if (_adapter.ConnectedDevices.Count == 0) {
+                        ShowFirstMeasurementSpinner();
+
                         try {
                             await Connect();
                         }
                         catch (Exception ex) {
                             Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
+
+                            HideFirstMeasurementSpinner();
                         }
                     }
                     else Log.Debug("MAIN", "##### Device is connected");
@@ -397,12 +401,12 @@ namespace EcoBand {
             state.instance = instance;
         }
 
-        private void SetMeasurementsTimer(int time) {
-            SetTimer(time, _measurementsTimer, OnMeasurementTime);
+        private void SetMeasurementsTimer() {
+            SetTimer(_measurementInterval, _measurementsTimer, OnMeasurementTime);
         }
 
-        private void SetStepsTimer(int time) {
-            SetTimer(time, _stepsTimer, OnStepsTime);
+        private void SetStepsTimer() {
+            SetTimer(_stepsInterval, _stepsTimer, OnStepsTime);
         }
 
         private async Task SetDeviceEventHandlers() {
@@ -412,8 +416,8 @@ namespace EcoBand {
 
                 await StartMeasuring();
 
-                SetMeasurementsTimer(_measurementInterval);
-                SetStepsTimer(_stepsInterval);
+                SetMeasurementsTimer();
+                SetStepsTimer();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error setting device event handlers: {ex.Message}");
@@ -474,8 +478,6 @@ namespace EcoBand {
 
                 if (foundDevice && _device != null) {
                     Log.Debug("MAIN", "##### Band is already paired");
-
-                    ShowFirstMeasurementSpinner();
 
                     return true;
                 }
