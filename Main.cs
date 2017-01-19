@@ -215,7 +215,7 @@ namespace EcoBand {
         }
 
         public void OnProviderDisabled(string provider) {
-
+            _locationManager.RemoveUpdates(this);
         }
 
         public void OnProviderEnabled(string provider) {
@@ -534,6 +534,8 @@ namespace EcoBand {
         protected override void OnResume() {
             base.OnResume();
 
+            CheckGPS();
+            CheckConnection().NoAwait();
             StartMeasuringLocation();
         }
     }
