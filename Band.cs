@@ -185,7 +185,7 @@ namespace EcoBand {
                 return -1;
             }
         }
- 
+
         public async Task<bool> StartMeasuringSteps() {
             bool suscribed;
             bool startedMeasuring;
@@ -193,20 +193,8 @@ namespace EcoBand {
             try {
                 if (_mainService == null) _mainService = await GetService(UUID_SV_MAIN);
 
-                suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, _mainService, (o, arguments) => {
-                    byte[] stepsBytes;
-                    int stepsValue;
-                    EventHandler<MeasureEventArgs> steps;
-
-                    stepsBytes = arguments.Characteristic.Value;
-                    stepsValue = DecodeSteps(stepsBytes);
-                    steps = Steps;
-
-                    Log.Debug("BAND", $"##### STEPS UPDATED: {stepsValue}");
-
-                    if (steps != null) steps(this, new MeasureEventArgs(stepsValue));
-                });
-                startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, _mainService);
+                suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, _mainService, OnSteps);
+                startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
 
                 return suscribed && startedMeasuring;
             }
@@ -229,29 +217,52 @@ namespace EcoBand {
                 userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
 
-                wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, _mainService);
-                suscribed = await SubscribeToHeartRate((o, arguments) => {
-                    byte[] heartRateBytes;
-                    int heartRateValue;
-                    EventHandler<MeasureEventArgs> heartRate;
-
-                    heartRateBytes = arguments.Characteristic.Value;
-                    heartRateValue = DecodeHeartRate(heartRateBytes);
-                    heartRate = HeartRate;
-
-                    if (heartRateValue > 0) { 
-                        Log.Debug("BAND", $"##### HEART RATE UPDATED: {heartRateValue}");
-
-                        if (heartRate != null) heartRate(this, new MeasureEventArgs(heartRateValue));
-                    }
-                });
+                wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
+                suscribed = await SubscribeToHeartRate(OnHeartRate);
 
                 return wroteUserInfo && suscribed;
             }
-            catch (Exception ex) { 
-                Log.Error("BAND", $"Error getting heart rate: {ex.Message}");
+            catch (Exception ex) {
+                Log.Error("BAND", $"Error subscribing to heart rate: {ex.Message}");
 
                 return false;
+            }
+        }
+
+
+        /**************************************************************************
+
+            Event handlers
+
+         **************************************************************************/
+
+        private void OnSteps(object sender, CharacteristicUpdatedEventArgs arguments) {
+            byte[] stepsBytes;
+            int stepsValue;
+            EventHandler<MeasureEventArgs> steps;
+
+            stepsBytes = arguments.Characteristic.Value;
+            stepsValue = DecodeSteps(stepsBytes);
+            steps = Steps;
+
+            Log.Debug("BAND", $"##### STEPS UPDATED: {stepsValue}");
+
+            if (steps != null) steps(this, new MeasureEventArgs(stepsValue));
+        }
+
+        private void OnHeartRate(object sender, CharacteristicUpdatedEventArgs arguments) {
+            byte[] heartRateBytes;
+            int heartRateValue;
+            EventHandler<MeasureEventArgs> heartRate;
+
+            heartRateBytes = arguments.Characteristic.Value;
+            heartRateValue = DecodeHeartRate(heartRateBytes);
+            heartRate = HeartRate;
+
+            if (heartRateValue > 0) {
+                Log.Debug("BAND", $"##### HEART RATE UPDATED: {heartRateValue}");
+
+                if (heartRate != null) heartRate(this, new MeasureEventArgs(heartRateValue));
             }
         }
 
@@ -274,7 +285,7 @@ namespace EcoBand {
         }
 
         private async Task<byte[]> ReadFromCharacteristic(ICharacteristic characteristic) {
-            Log.Debug("BAND", "##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
+            Log.Debug("BAND", $"##### ReadFromCharacteristic(characteristic): Trying to get data from characteristic {characteristic.Uuid}...");
 
             try {
                 if (characteristic.CanRead) return await characteristic.ReadAsync();
@@ -293,7 +304,7 @@ namespace EcoBand {
         private async Task<byte[]> ReadFromCharacteristic(Guid UUIDCharacteristic, IService service) {
             ICharacteristic characteristic;
 
-            Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
+            Log.Debug("BAND", $"##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get data from characteristic {UUIDCharacteristic}...");
 
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -313,7 +324,7 @@ namespace EcoBand {
 
             service = await GetService(UUIDService);
 
-            Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
+            Log.Debug("BAND", $"##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get data from characteristic {UUIDCharacteristic}...");
 
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -328,7 +339,7 @@ namespace EcoBand {
         }
 
         private async Task<bool> WriteToCharacteristic(byte[] data, ICharacteristic characteristic) {
-            Log.Debug("BAND", "##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
+            Log.Debug("BAND", $"##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic {characteristic.Uuid}...");
 
             try {
                 if (characteristic.CanWrite) return await characteristic.WriteAsync(data);
@@ -347,7 +358,7 @@ namespace EcoBand {
         private async Task<bool> WriteToCharacteristic(byte[] data, Guid UUIDCharacteristic, IService service) {
             ICharacteristic characteristic;
 
-            Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
+            Log.Debug("BAND", $"##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic {UUIDCharacteristic}...");
 
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -367,7 +378,7 @@ namespace EcoBand {
 
             service = await GetService(UUIDService);
 
-            Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
+            Log.Debug("BAND", $"##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic {UUIDCharacteristic}...");
 
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -382,7 +393,7 @@ namespace EcoBand {
         }
 
         private async Task<bool> SubscribeTo(ICharacteristic characteristic, EventHandler<CharacteristicUpdatedEventArgs> callback) {
-            Log.Debug("BAND", "##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", $"##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic {characteristic.Uuid}...");
 
             try {
                 if (!_eventHandlers.Contains(callback)) { 
@@ -405,7 +416,7 @@ namespace EcoBand {
         private async Task<bool> SubscribeTo(Guid UUIDCharacteristic, IService service, EventHandler<CharacteristicUpdatedEventArgs> callback) {
             ICharacteristic characteristic;
 
-            Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", $"##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic {UUIDCharacteristic}...");
 
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -423,7 +434,7 @@ namespace EcoBand {
             IService service;
             ICharacteristic characteristic;
 
-            Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
+            Log.Debug("BAND", $"##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic {UUIDCharacteristic}...");
 
             try {
                 service = await GetService(UUIDService);
@@ -457,20 +468,24 @@ namespace EcoBand {
             bool stoppedMeasuring;
             bool startedMeasuring;
 
-            try {
-                service = await GetService(UUID_SV_HEART_RATE);
-                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
-                suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
-                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
-                startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
+            if (!_eventHandlers.Contains(callback)) { 
+                try {
+                    service = await GetService(UUID_SV_HEART_RATE);
+                    controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+                    suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
+                    stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+                    startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
 
-                return suscribed && stoppedMeasuring && startedMeasuring;
-            }
-            catch (Exception ex) {
-                Log.Error("BAND", $"Error subscribing to characteristic: {ex.Message}");
+                    return suscribed && stoppedMeasuring && startedMeasuring;
+                }
+                catch (Exception ex) {
+                    Log.Error("BAND", $"Error subscribing to heart rate: {ex.Message}");
 
-                return false;
+                    return false;
+                }
             }
+
+            return false;
         }
     }
 

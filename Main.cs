@@ -178,8 +178,7 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Starting new steps cycle...");
 
             try {
-                if (!IsPaired()) CheckConnection().NoAwait();
-
+                if (_device == null) CheckConnection().NoAwait();
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
@@ -318,7 +317,7 @@ namespace EcoBand {
             if (_ble.IsOn) {
                 Log.Debug("MAIN", "##### Bluetooth is on");
 
-                if (!_adapter.IsScanning) { 
+                if (!_adapter.IsScanning) {
                     _cancellationTokenSource = new CancellationTokenSource();
 
                     Log.Debug("MAIN", "##### Beginning scan...");
@@ -331,10 +330,11 @@ namespace EcoBand {
                     await CheckConnection();
                 }
             }
+            else { 
+                Log.Debug("MAIN", "##### Bluetooth is not on :(");
 
-            Log.Debug("MAIN", "##### Bluetooth is not on :(");
-
-            _userDialogs.Toast("Bluetooth está desactivado");
+                _userDialogs.Toast("Bluetooth está desactivado");
+            }
         }
 
         private async Task Connect() {
@@ -473,11 +473,7 @@ namespace EcoBand {
                     }
                 }
 
-                if (foundDevice && _device != null) {
-                    Log.Debug("MAIN", "##### Band is already paired");
-
-                    return true;
-                }
+                if (foundDevice && _device != null) return true;
             }
 
             Log.Debug("MAIN", "##### Band is not paired");
