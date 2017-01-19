@@ -2244,8 +2244,8 @@ namespace EcoBand
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f0a0084
-			public const int action0 = 2131361924;
+			// aapt resource value: 0x7f0a0085
+			public const int action0 = 2131361925;
 			
 			// aapt resource value: 0x7f0a0065
 			public const int action_bar = 2131361893;
@@ -2271,8 +2271,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0066
 			public const int action_context_bar = 2131361894;
 			
-			// aapt resource value: 0x7f0a0088
-			public const int action_divider = 2131361928;
+			// aapt resource value: 0x7f0a0089
+			public const int action_divider = 2131361929;
 			
 			// aapt resource value: 0x7f0a0003
 			public const int action_menu_divider = 2131361795;
@@ -2316,8 +2316,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a004f
 			public const int buttonPanel = 2131361871;
 			
-			// aapt resource value: 0x7f0a0085
-			public const int cancel_action = 2131361925;
+			// aapt resource value: 0x7f0a0086
+			public const int cancel_action = 2131361926;
 			
 			// aapt resource value: 0x7f0a0020
 			public const int center = 2131361824;
@@ -2331,8 +2331,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a005d
 			public const int checkbox = 2131361885;
 			
-			// aapt resource value: 0x7f0a008b
-			public const int chronometer = 2131361931;
+			// aapt resource value: 0x7f0a008c
+			public const int chronometer = 2131361932;
 			
 			// aapt resource value: 0x7f0a0029
 			public const int clip_horizontal = 2131361833;
@@ -2385,8 +2385,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0023
 			public const int end = 2131361827;
 			
-			// aapt resource value: 0x7f0a0090
-			public const int end_padder = 2131361936;
+			// aapt resource value: 0x7f0a0091
+			public const int end_padder = 2131361937;
 			
 			// aapt resource value: 0x7f0a0018
 			public const int enterAlways = 2131361816;
@@ -2436,8 +2436,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a004a
 			public const int image = 2131361866;
 			
-			// aapt resource value: 0x7f0a008f
-			public const int info = 2131361935;
+			// aapt resource value: 0x7f0a0090
+			public const int info = 2131361936;
 			
 			// aapt resource value: 0x7f0a000a
 			public const int item_touch_helper_previous_elevation = 2131361802;
@@ -2445,11 +2445,14 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0081
 			public const int lblHeartBeats = 2131361921;
 			
-			// aapt resource value: 0x7f0a0082
-			public const int lblLatitude = 2131361922;
-			
 			// aapt resource value: 0x7f0a0083
-			public const int lblLongitude = 2131361923;
+			public const int lblLatitude = 2131361923;
+			
+			// aapt resource value: 0x7f0a0084
+			public const int lblLongitude = 2131361924;
+			
+			// aapt resource value: 0x7f0a0082
+			public const int lblStepsPerMinute = 2131361922;
 			
 			// aapt resource value: 0x7f0a0025
 			public const int left = 2131361829;
@@ -2457,11 +2460,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0015
 			public const int light = 2131361813;
 			
-			// aapt resource value: 0x7f0a0089
-			public const int line1 = 2131361929;
+			// aapt resource value: 0x7f0a008a
+			public const int line1 = 2131361930;
 			
-			// aapt resource value: 0x7f0a008d
-			public const int line3 = 2131361933;
+			// aapt resource value: 0x7f0a008e
+			public const int line3 = 2131361934;
 			
 			// aapt resource value: 0x7f0a0030
 			public const int listMode = 2131361840;
@@ -2478,8 +2481,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0080
 			public const int loadingProgressWheel = 2131361920;
 			
-			// aapt resource value: 0x7f0a0087
-			public const int media_actions = 2131361927;
+			// aapt resource value: 0x7f0a0088
+			public const int media_actions = 2131361928;
 			
 			// aapt resource value: 0x7f0a003f
 			public const int middle = 2131361855;
@@ -2511,29 +2514,29 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a001e
 			public const int pin = 2131361822;
 			
-			// aapt resource value: 0x7f0a0093
-			public const int place_autocomplete_clear_button = 2131361939;
-			
-			// aapt resource value: 0x7f0a0095
-			public const int place_autocomplete_powered_by_google = 2131361941;
-			
-			// aapt resource value: 0x7f0a0097
-			public const int place_autocomplete_prediction_primary_text = 2131361943;
-			
-			// aapt resource value: 0x7f0a0098
-			public const int place_autocomplete_prediction_secondary_text = 2131361944;
+			// aapt resource value: 0x7f0a0094
+			public const int place_autocomplete_clear_button = 2131361940;
 			
 			// aapt resource value: 0x7f0a0096
-			public const int place_autocomplete_progress = 2131361942;
+			public const int place_autocomplete_powered_by_google = 2131361942;
 			
-			// aapt resource value: 0x7f0a0091
-			public const int place_autocomplete_search_button = 2131361937;
+			// aapt resource value: 0x7f0a0098
+			public const int place_autocomplete_prediction_primary_text = 2131361944;
+			
+			// aapt resource value: 0x7f0a0099
+			public const int place_autocomplete_prediction_secondary_text = 2131361945;
+			
+			// aapt resource value: 0x7f0a0097
+			public const int place_autocomplete_progress = 2131361943;
 			
 			// aapt resource value: 0x7f0a0092
-			public const int place_autocomplete_search_input = 2131361938;
+			public const int place_autocomplete_search_button = 2131361938;
 			
-			// aapt resource value: 0x7f0a0094
-			public const int place_autocomplete_separator = 2131361940;
+			// aapt resource value: 0x7f0a0093
+			public const int place_autocomplete_search_input = 2131361939;
+			
+			// aapt resource value: 0x7f0a0095
+			public const int place_autocomplete_separator = 2131361941;
 			
 			// aapt resource value: 0x7f0a0006
 			public const int progress_circular = 2131361798;
@@ -2643,8 +2646,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a0027
 			public const int start = 2131361831;
 			
-			// aapt resource value: 0x7f0a0086
-			public const int status_bar_latest_event_content = 2131361926;
+			// aapt resource value: 0x7f0a0087
+			public const int status_bar_latest_event_content = 2131361927;
 			
 			// aapt resource value: 0x7f0a0070
 			public const int submit_area = 2131361904;
@@ -2655,11 +2658,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a000f
 			public const int terrain = 2131361807;
 			
-			// aapt resource value: 0x7f0a008e
-			public const int text = 2131361934;
+			// aapt resource value: 0x7f0a008f
+			public const int text = 2131361935;
 			
-			// aapt resource value: 0x7f0a008c
-			public const int text2 = 2131361932;
+			// aapt resource value: 0x7f0a008d
+			public const int text2 = 2131361933;
 			
 			// aapt resource value: 0x7f0a0058
 			public const int textSpacerNoButtons = 2131361880;
@@ -2667,8 +2670,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f0a007e
 			public const int textViewStatus = 2131361918;
 			
-			// aapt resource value: 0x7f0a008a
-			public const int time = 2131361930;
+			// aapt resource value: 0x7f0a008b
+			public const int time = 2131361931;
 			
 			// aapt resource value: 0x7f0a004e
 			public const int title = 2131361870;

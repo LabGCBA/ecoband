@@ -4,10 +4,10 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:layout_centerHorizontal="true"
-    android:rowCount="5"
+    android:rowCount="7"
     android:columnCount="2"
     android:orientation="vertical"
-    android:padding="4dp"
+    android:padding="0dp"
     android:alignmentMode="alignBounds"
     android:useDefaultMargins="true">
     <TextView
@@ -16,7 +16,7 @@
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
         android:text="0"
-        android:textSize="200dp"
+        android:textSize="150dp"
 		android:textColor="@color/colorAccent"
         android:layout_row="0"
         android:layout_column="0"
@@ -27,26 +27,48 @@
         android:theme="@style/TextView"
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
-        android:text="PPM"
+        android:text="Pulsaciones por minuto"
         android:textSize="14dip"
         android:layout_row="1"
         android:layout_column="0"
 		android:layout_columnSpan="2"
         android:gravity="center" />
-	<Space
+	<TextView
+        android:theme="@style/TextView"
+        android:id="@+id/lblStepsPerMinute"
+        android:layout_columnWeight="1"
+        android:layout_gravity="fill_horizontal"
+        android:text="0"
+        android:textSize="150dp"
+		android:textColor="@color/colorAccent"
         android:layout_row="2"
         android:layout_column="0"
+        android:layout_columnSpan="2"
+        android:gravity="center"
+        android:textStyle="normal" />
+    <TextView
+        android:theme="@style/TextView"
+        android:layout_columnWeight="1"
+        android:layout_gravity="fill_horizontal"
+        android:text="Pasos por minuto"
+        android:textSize="14dip"
+        android:layout_row="3"
+        android:layout_column="0"
 		android:layout_columnSpan="2"
-        android:layout_width="50dp"
-        android:layout_height="50dp" />
+        android:gravity="center" />
+	<Space
+        android:layout_row="4"
+        android:layout_column="0"
+		android:layout_columnSpan="2"
+        android:layout_height="20dp" />
 	<TextView
         android:theme="@style/TextView"
 		android:id="@+id/lblLatitude"
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
-        android:text=""
+        android:text="-"
         android:textSize="14dip"
-        android:layout_row="3"
+        android:layout_row="5"
         android:layout_column="0"
         android:gravity="center" />
 	<TextView
@@ -55,7 +77,7 @@
         android:layout_gravity="fill_horizontal"
         android:text="Latitud"
         android:textSize="14dip"
-        android:layout_row="4"
+        android:layout_row="6"
         android:layout_column="0"
         android:gravity="center" />
 	<TextView
@@ -63,9 +85,9 @@
 		android:id="@+id/lblLongitude"
         android:layout_columnWeight="1"
         android:layout_gravity="fill_horizontal"
-        android:text=""
+        android:text="-"
         android:textSize="14dip"
-        android:layout_row="3"
+        android:layout_row="5"
         android:layout_column="1"
         android:gravity="center" />
 	<TextView
@@ -74,7 +96,8 @@
         android:layout_gravity="fill_horizontal"
         android:text="Longitud"
         android:textSize="14dip"
-        android:layout_row="4"
+        android:layout_row="6"
         android:layout_column="1"
         android:gravity="center" />
+	
 </GridLayout>

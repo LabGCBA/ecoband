@@ -2,7 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+
 using Android.Bluetooth;
+using Android.Util;
+
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
 
@@ -177,7 +180,7 @@ namespace EcoBand {
                 return DecodeSteps(steps);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting steps: {ex.Message}");
+                Log.Error("BAND", $"Error getting steps: {ex.Message}");
 
                 return -1;
             }
@@ -199,7 +202,7 @@ namespace EcoBand {
                     stepsValue = DecodeSteps(stepsBytes);
                     steps = Steps;
 
-                    Console.WriteLine($"##### STEPS UPDATED: {stepsValue}");
+                    Log.Debug("BAND", $"##### STEPS UPDATED: {stepsValue}");
 
                     if (steps != null) steps(this, new MeasureEventArgs(stepsValue));
                 });
@@ -208,7 +211,7 @@ namespace EcoBand {
                 return suscribed && startedMeasuring;
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to steps: {ex.Message}");
+                Log.Error("BAND", $"Error subscribing to steps: {ex.Message}");
 
                 return false;
             }
@@ -237,7 +240,7 @@ namespace EcoBand {
                     heartRate = HeartRate;
 
                     if (heartRateValue > 0) { 
-                        Console.WriteLine($"##### HEART RATE UPDATED: {heartRateValue}");
+                        Log.Debug("BAND", $"##### HEART RATE UPDATED: {heartRateValue}");
 
                         if (heartRate != null) heartRate(this, new MeasureEventArgs(heartRateValue));
                     }
@@ -246,7 +249,7 @@ namespace EcoBand {
                 return wroteUserInfo && suscribed;
             }
             catch (Exception ex) { 
-                Console.WriteLine($"##### Error getting heart rate: {ex.Message}");
+                Log.Error("BAND", $"Error getting heart rate: {ex.Message}");
 
                 return false;
             }
@@ -264,7 +267,7 @@ namespace EcoBand {
                 return await Device.GetServiceAsync(uuid);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting service {uuid.ToString()}: {ex.Message}");
+                Log.Error("BAND", $"Error getting service {uuid.ToString()}: {ex.Message}");
 
                 return null;
             }
@@ -272,16 +275,16 @@ namespace EcoBand {
 
         private async Task<byte[]> ReadFromCharacteristic(ICharacteristic characteristic) {
             try {
-                Console.WriteLine("##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
+                Log.Debug("BAND", "##### ReadFromCharacteristic(characteristic): Trying to get characteristic data...");
 
                 if (characteristic.CanRead) return await characteristic.ReadAsync();
 
-                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does not support read");
+                Log.Debug("BAND", $"##### Characteristic {characteristic.Uuid} does not support read");
 
                 return null;
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return null;
             }
@@ -291,14 +294,14 @@ namespace EcoBand {
             ICharacteristic characteristic;
 
             try {
-                Console.WriteLine("##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
+                Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, service): Trying to get characteristic data...");
 
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return null;
             }
@@ -311,14 +314,14 @@ namespace EcoBand {
             service = await GetService(UUIDService);
 
             try {
-                Console.WriteLine("##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
+                Log.Debug("BAND", "##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get characteristic data...");
 
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return null;
             }
@@ -326,16 +329,16 @@ namespace EcoBand {
 
         private async Task<bool> WriteToCharacteristic(byte[] data, ICharacteristic characteristic) {
             try {
-                Console.WriteLine("##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
+                Log.Debug("BAND", "##### WriteToCharacteristic(data, characteristic): Trying to write to characteristic...");
 
                 if (characteristic.CanWrite) return await characteristic.WriteAsync(data);
 
-                Console.WriteLine($"##### Characteristic {characteristic.Uuid} does not support write");
+                Log.Debug("BAND", $"##### Characteristic {characteristic.Uuid} does not support write");
 
                 return false;
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return false;
             }
@@ -345,14 +348,14 @@ namespace EcoBand {
             ICharacteristic characteristic;
 
             try {
-                Console.WriteLine("##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
+                Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, service): Trying to write to characteristic...");
 
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return false;
             }
@@ -365,14 +368,14 @@ namespace EcoBand {
             service = await GetService(UUIDService);
 
             try {
-                Console.WriteLine("##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
+                Log.Debug("BAND", "##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic...");
 
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
 
                 return false;
             }
@@ -380,7 +383,7 @@ namespace EcoBand {
 
         private async Task<bool> SubscribeTo(ICharacteristic characteristic, EventHandler<CharacteristicUpdatedEventArgs> callback) {
             try {
-                Console.WriteLine("##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
+                Log.Debug("BAND", "##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic...");
 
                 if (!_eventHandlers.Contains(callback)) { 
                     characteristic.ValueUpdated += callback;
@@ -393,7 +396,7 @@ namespace EcoBand {
                 return true;
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+                Log.Error("BAND", $"Error subscribing to characteristic: {ex.Message}");
 
                 return false;
             }
@@ -403,14 +406,14 @@ namespace EcoBand {
             ICharacteristic characteristic;
 
             try {
-                Console.WriteLine("##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
+                Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, service, callback): Trying to subscribe to characteristic...");
 
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await SubscribeTo(characteristic, callback);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+                Log.Error("BAND", $"Error subscribing to characteristic: {ex.Message}");
 
                 return false;
             }
@@ -421,7 +424,7 @@ namespace EcoBand {
             ICharacteristic characteristic;
 
             try {
-                Console.WriteLine("##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
+                Log.Debug("BAND", "##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic...");
 
                 service = await GetService(UUIDService);
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
@@ -429,7 +432,7 @@ namespace EcoBand {
                 return await SubscribeTo(characteristic, callback);
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+                Log.Error("BAND", $"Error subscribing to characteristic: {ex.Message}");
 
                 return false;
             }
@@ -442,7 +445,7 @@ namespace EcoBand {
         private int DecodeHeartRate(byte[] heartRate) {
             if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
 
-            Console.WriteLine("##### Received invalid heart rate value");
+            Log.Debug("BAND", "##### Received invalid heart rate value");
 
             return (heartRate[0] & 0xff);
         }
@@ -464,7 +467,7 @@ namespace EcoBand {
                 return suscribed && stoppedMeasuring && startedMeasuring;
             }
             catch (Exception ex) {
-                Console.WriteLine($"##### Error subscribing to characteristic: {ex.Message}");
+                Log.Error("BAND", $"Error subscribing to characteristic: {ex.Message}");
 
                 return false;
             }
