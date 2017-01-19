@@ -468,24 +468,20 @@ namespace EcoBand {
             bool stoppedMeasuring;
             bool startedMeasuring;
 
-            if (!_eventHandlers.Contains(callback)) { 
-                try {
-                    service = await GetService(UUID_SV_HEART_RATE);
-                    controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
-                    suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
-                    stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
-                    startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
+            try {
+                service = await GetService(UUID_SV_HEART_RATE);
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+                suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
+                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+                startedMeasuring = await WriteToCharacteristic(HR_CP_START_HEART_RATE_CONTINUOUS, controlPoint);
 
-                    return suscribed && stoppedMeasuring && startedMeasuring;
-                }
-                catch (Exception ex) {
-                    Log.Error("BAND", $"Error subscribing to heart rate: {ex.Message}");
-
-                    return false;
-                }
+                return suscribed && stoppedMeasuring && startedMeasuring;
             }
+            catch (Exception ex) {
+                Log.Error("BAND", $"Error subscribing to heart rate: {ex.Message}");
 
-            return false;
+                return false;
+            }
         }
     }
 
