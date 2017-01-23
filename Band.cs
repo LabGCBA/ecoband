@@ -173,7 +173,7 @@ namespace EcoBand {
             byte[] steps;
 
             try {
-                if (_mainService == null) _mainService = await GetService(UUID_SV_MAIN);
+                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
 
                 steps = await ReadFromCharacteristic(UUID_CH_REALTIME_STEPS, _mainService);
 
@@ -191,10 +191,10 @@ namespace EcoBand {
             bool startedMeasuring;
 
             try {
-                if (_mainService == null) _mainService = await GetService(UUID_SV_MAIN);
+                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
 
                 suscribed = await SubscribeTo(UUID_CH_REALTIME_STEPS, _mainService, OnSteps);
-                startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, UUID_SV_MAIN);
+                startedMeasuring = await WriteToCharacteristic(CP_START_REALTIME_STEPS, UUID_CH_CONTROL_POINT, _mainService);
 
                 return suscribed && startedMeasuring;
             }
@@ -212,12 +212,12 @@ namespace EcoBand {
             bool suscribed;
 
             try {
-                if (_mainService == null) _mainService = await GetService(UUID_SV_MAIN);
+                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
 
                 userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
 
-                wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, UUID_SV_MAIN);
+                wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, _mainService);
                 suscribed = await SubscribeToHeartRate(OnHeartRate);
 
                 return wroteUserInfo && suscribed;
@@ -273,17 +273,6 @@ namespace EcoBand {
 
          **************************************************************************/
 
-        private async Task<IService> GetService(Guid uuid) {
-            try {
-                return await Device.GetServiceAsync(uuid);
-            }
-            catch (Exception ex) {
-                Log.Error("BAND", $"Error getting service {uuid.ToString()}: {ex.Message}");
-
-                return null;
-            }
-        }
-
         private async Task<byte[]> ReadFromCharacteristic(ICharacteristic characteristic) {
             Log.Debug("BAND", $"##### ReadFromCharacteristic(characteristic): Trying to get data from characteristic {characteristic.Uuid}...");
 
@@ -325,7 +314,7 @@ namespace EcoBand {
             Log.Debug("BAND", $"##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get data from characteristic {UUIDCharacteristic}...");
 
             try {
-                service = await GetService(UUIDService);
+                service = await Device.GetServiceAsync(UUIDService);
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
@@ -348,7 +337,7 @@ namespace EcoBand {
                 return false;
             }
             catch (Exception ex) {
-                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error writing to characteristic: {ex.ToString()}");
 
                 return false;
             }
@@ -365,7 +354,7 @@ namespace EcoBand {
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
-                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error writing to characteristic: {ex.ToString()}");
 
                 return false;
             }
@@ -378,13 +367,18 @@ namespace EcoBand {
             Log.Debug("BAND", $"##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic {UUIDCharacteristic}...");
 
             try {
-                service = await GetService(UUIDService);
+                service = await Device.GetServiceAsync(UUIDService);
+
+                if (service == null) Log.Error("BAND", $"SERVICE IS NULL!!!!!!!!!!!!!!!!!!");
+                    
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
+
+                if (characteristic == null) Log.Error("BAND", $"CHARACTERISTIC IS NULL!!!!!!!!!!!!!!!!!!");
 
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
-                Log.Error("BAND", $"Error getting characteristic data: {ex.Message}");
+                Log.Error("BAND", $"Error writing to characteristic: {ex.ToString()}");
 
                 return false;
             }
@@ -433,7 +427,10 @@ namespace EcoBand {
             Log.Debug("BAND", $"##### SubscribeTo(UUIDCharacteristic, UUIDservice, callback): Trying to subscribe to characteristic {UUIDCharacteristic}...");
 
             try {
-                service = await GetService(UUIDService);
+                service = await Device.GetServiceAsync(UUIDService);
+
+                if (service == null) Log.Error("BAND", $"SERVICE IS NULL!!!!!!!!!!!!!!!!!! IN SubscribeTo()");
+
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await SubscribeTo(characteristic, callback);
@@ -465,7 +462,7 @@ namespace EcoBand {
             bool startedMeasuring;
 
             try {
-                service = await GetService(UUID_SV_HEART_RATE);
+                service = await Device.GetServiceAsync(UUID_SV_HEART_RATE);
                 controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
                 suscribed = await SubscribeTo(UUID_CH_HEART_RATE, service, callback);
                 stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
