@@ -14,7 +14,7 @@ namespace EcoBand {
         public Band(IDevice device) {
             Device = device;
 
-            _eventHandlers = new List<EventHandler<CharacteristicUpdatedEventArgs>>();
+            _eventHandlers = new HashSet<EventHandler<CharacteristicUpdatedEventArgs>>();
         }
 
         /**************************************************************************
@@ -160,7 +160,7 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
         private IService _mainService;
-        private List<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
+        private HashSet<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
 
 
         /**************************************************************************
@@ -322,11 +322,10 @@ namespace EcoBand {
             ICharacteristic characteristic;
             IService service;
 
-            service = await GetService(UUIDService);
-
             Log.Debug("BAND", $"##### ReadFromCharacteristic(UUIDCharacteristic, UUIDService): Trying to get data from characteristic {UUIDCharacteristic}...");
 
             try {
+                service = await GetService(UUIDService);
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await ReadFromCharacteristic(characteristic);
@@ -376,11 +375,10 @@ namespace EcoBand {
             ICharacteristic characteristic;
             IService service;
 
-            service = await GetService(UUIDService);
-
             Log.Debug("BAND", $"##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic {UUIDCharacteristic}...");
 
             try {
+                service = await GetService(UUIDService);
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await WriteToCharacteristic(data, characteristic);
@@ -396,10 +394,8 @@ namespace EcoBand {
             Log.Debug("BAND", $"##### SubscribeTo(characteristic, callback): Trying to subscribe to characteristic {characteristic.Uuid}...");
 
             try {
-                if (!_eventHandlers.Contains(callback)) { 
+                if (_eventHandlers.Add(callback)) {
                     characteristic.ValueUpdated += callback;
-
-                    _eventHandlers.Add(callback);
 
                     await characteristic.StartUpdatesAsync();
                 }
