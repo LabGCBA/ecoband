@@ -23,7 +23,7 @@ using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
 
 namespace EcoBand {
-    [Activity(Label = "Mi Band", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
 
     public class Main : Activity, ILocationListener {
         public Main() {
@@ -68,7 +68,7 @@ namespace EcoBand {
         private int _stepsBuffer;
         private DateTime? _lastStepTimestamp;
         private const int _measurementInterval = 15000;
-        private const int _stepsInterval = 3000;
+        private const int _stepsInterval = 5000;
         private const int _requestEnableBluetooth = 2;
 
 
