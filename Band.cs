@@ -159,8 +159,8 @@ namespace EcoBand {
         private readonly byte BATTERY_CHARGING_FULL = 3;
         private readonly byte BATTERY_CHARGE_OFF = 4;
 
-        private IService _mainService;
-        private HashSet<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
+        private static IService _mainService;
+        private static HashSet<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
 
 
         /**************************************************************************
@@ -205,6 +205,23 @@ namespace EcoBand {
             }
         }
 
+        public async Task<bool> StopMeasuringSteps() {
+            bool stoppedMeasuring;
+
+            try {
+                if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
+
+                stoppedMeasuring = await WriteToCharacteristic(CP_STOP_REALTIME_STEPS, UUID_CH_CONTROL_POINT, _mainService);
+
+                return stoppedMeasuring;
+            }
+            catch (Exception ex) {
+                Log.Error("BAND", $"Error stopping steps measurement: {ex.Message}");
+
+                return false;
+            }
+        }
+
         public async Task<bool> StartMeasuringHeartRate() {
             UserProfile userProfile;
             string address;
@@ -216,7 +233,6 @@ namespace EcoBand {
 
                 userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
-
                 wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, _mainService);
                 suscribed = await SubscribeToHeartRate(OnHeartRate);
 
@@ -224,6 +240,34 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Log.Error("BAND", $"Error subscribing to heart rate: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        public async Task<bool> StopMeasuringHeartRate() {
+            IService service;
+            ICharacteristic controlPoint;
+            // UserProfile userProfile;
+            string address;
+            // bool wroteUserInfo;
+            bool stoppedMeasuring;
+
+            try {
+                // if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
+
+                service = await Device.GetServiceAsync(UUID_SV_HEART_RATE);
+                address = ((BluetoothDevice) Device.NativeDevice).Address;
+                controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
+                // userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
+                // wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, _mainService);
+                stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+
+                // return wroteUserInfo && stoppedMeasuring;
+                return stoppedMeasuring;
+            }
+            catch (Exception ex) {
+                Log.Error("BAND", $"Error stopping heart rate mesurement: {ex.Message}");
 
                 return false;
             }
@@ -351,6 +395,8 @@ namespace EcoBand {
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
+                if (characteristic == null) Log.Error("ERROR", "SERVICE IS NULL");
+
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
@@ -428,9 +474,6 @@ namespace EcoBand {
 
             try {
                 service = await Device.GetServiceAsync(UUIDService);
-
-                if (service == null) Log.Error("BAND", $"SERVICE IS NULL!!!!!!!!!!!!!!!!!! IN SubscribeTo()");
-
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
                 return await SubscribeTo(characteristic, callback);

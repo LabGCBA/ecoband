@@ -27,12 +27,7 @@ namespace EcoBand {
 
     public class Main : Activity, ILocationListener {
         public Main() {
-            _ble = CrossBluetoothLE.Current;
-            _adapter = CrossBluetoothLE.Current.Adapter;
             _beatsBuffer = new Queue<int>(5);
-            _stepsBuffer = 0;
-            _lastStepTimestamp = null;
-            _isConnecting = false;
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -53,22 +48,23 @@ namespace EcoBand {
          
          **************************************************************************/
 
-        private readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter;
-        private readonly IBluetoothLE _ble;
-        private Band _device;
-        private TextView _heartRateLabel;
-        private TextView _stepsLabel;
-        private TextView _latitudeLabel;
-        private TextView _longitudeLabel;
-        private CancellationTokenSource _cancellationTokenSource;
-        private IUserDialogs _userDialogs;
-        private Timer _measurementsTimer;
-        private Timer _stepsTimer;
-        private LocationManager _locationManager;
-        private bool _isConnecting;
-        private Queue<int> _beatsBuffer;
-        private int _stepsBuffer;
-        private DateTime? _lastStepTimestamp;
+        private static readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
+        private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
+        private static Band _device;
+        private static Handler _uiHandler;
+        private static TextView _heartRateLabel;
+        private static TextView _stepsLabel;
+        private static TextView _latitudeLabel;
+        private static TextView _longitudeLabel;
+        private static CancellationTokenSource _cancellationTokenSource;
+        private static IUserDialogs _userDialogs;
+        private static Timer _measurementsTimer;
+        private static Timer _stepsTimer;
+        private static LocationManager _locationManager;
+        private static bool _isConnecting;
+        private static Queue<int> _beatsBuffer;
+        private static int _stepsBuffer = 0;
+        private static DateTime? _lastStepTimestamp;
         private const int _measurementInterval = 15000;
         private const int _stepsInterval = 5000;
         private const int _requestEnableBluetooth = 2;
@@ -213,27 +209,24 @@ namespace EcoBand {
 
         private void OnHeartRateChange(object sender, MeasureEventArgs e) {
             double average;
-            double limit;
+            double upperLimit;
+            double lowerLimit;
 
             if (_beatsBuffer.Count > 0) {
                 average = _beatsBuffer.Average();
-                limit = average * 1.5;
+                upperLimit = average * 1.5;
+                lowerLimit = average / 2f;
 
-                if (e.Measure <= limit) {
-                    _beatsBuffer.Enqueue(e.Measure);
-
-                    RunOnUiThread(() => {
-                        _heartRateLabel.Text = e.Measure.ToString();
-                    });
-                }
+                if (e.Measure > upperLimit || e.Measure < lowerLimit) return;
             }
-            else { 
-                _beatsBuffer.Enqueue(e.Measure);
 
-                RunOnUiThread(() => {
-                    _heartRateLabel.Text = e.Measure.ToString();
-                });
-            }
+            _beatsBuffer.Enqueue(e.Measure);
+
+            RunOnUiThread(() => { 
+                _heartRateLabel.Text = e.Measure.ToString();
+
+                Log.Debug("UI THREAD", $"##### BEATS: {e.Measure}");
+            });
 
             HideFirstMeasurementSpinner();
         }
@@ -313,9 +306,7 @@ namespace EcoBand {
 
         private bool IsPaired() {
             List<IDevice> pairedDevices;
-            bool foundDevice;
 
-            foundDevice = false;
             pairedDevices = _adapter.GetSystemConnectedOrPairedDevices();
 
             if (pairedDevices.Count > 0) {
@@ -323,12 +314,11 @@ namespace EcoBand {
                     if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
                         Log.Debug("MAIN", $"##### Paired device: {device.Name}");
 
-                        foundDevice = true;
-                        _device = new Band(device);
+                        if (_device == null) _device = new Band(device);
+
+                        return true;
                     }
                 }
-
-                if (foundDevice && _device != null) return true;
             }
 
             Log.Debug("MAIN", "##### Band is not paired");
@@ -541,15 +531,12 @@ namespace EcoBand {
             UserDialogs.Init(this);
 
             _userDialogs = UserDialogs.Instance;
+            _uiHandler = new Handler(Looper.MainLooper);
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
             _stepsLabel = FindViewById<TextView>(Resource.Id.lblStepsPerMinute);
             _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitude);
             _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
             _locationManager = (LocationManager) GetSystemService(LocationService);
-
-            CheckGPS();
-            StartMeasuringLocation();
-            CheckConnection().NoAwait();
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
@@ -557,9 +544,7 @@ namespace EcoBand {
 
             if (requestCode == _requestEnableBluetooth) {
                 if (resultCode == Result.Ok) CheckConnection().NoAwait();
-                else RunOnUiThread(() => {
-                    _userDialogs.ShowError("No es posible usar la aplicación sin Bluetooth");
-                });
+                else _userDialogs.ShowError("No es posible usar la aplicación sin Bluetooth");
             }
         }
 
@@ -572,7 +557,12 @@ namespace EcoBand {
         protected override void OnResume() {
             base.OnResume();
 
+            //_uiHandler.Notify();
+
+            // _uiHandler = new Handler(Looper.MainLooper);
+
             CheckGPS();
+            CheckConnection().NoAwait();
             StartMeasuringLocation();
         }
     }
