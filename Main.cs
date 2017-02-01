@@ -29,6 +29,7 @@ namespace EcoBand {
         public Main() {
             _ble = CrossBluetoothLE.Current;
             _adapter = CrossBluetoothLE.Current.Adapter;
+            _beatsBuffer = new Queue<int>(5);
             _stepsBuffer = 0;
             _lastStepTimestamp = null;
             _isConnecting = false;
@@ -65,6 +66,7 @@ namespace EcoBand {
         private Timer _stepsTimer;
         private LocationManager _locationManager;
         private bool _isConnecting;
+        private Queue<int> _beatsBuffer;
         private int _stepsBuffer;
         private DateTime? _lastStepTimestamp;
         private const int _measurementInterval = 15000;
@@ -210,9 +212,28 @@ namespace EcoBand {
         }
 
         private void OnHeartRateChange(object sender, MeasureEventArgs e) {
-            RunOnUiThread(() => {
-                _heartRateLabel.Text = e.Measure.ToString();
-            });
+            double average;
+            double limit;
+
+            if (_beatsBuffer.Count > 0) {
+                average = _beatsBuffer.Average();
+                limit = average * 1.5;
+
+                if (e.Measure <= limit) {
+                    _beatsBuffer.Enqueue(e.Measure);
+
+                    RunOnUiThread(() => {
+                        _heartRateLabel.Text = e.Measure.ToString();
+                    });
+                }
+            }
+            else { 
+                _beatsBuffer.Enqueue(e.Measure);
+
+                RunOnUiThread(() => {
+                    _heartRateLabel.Text = e.Measure.ToString();
+                });
+            }
 
             HideFirstMeasurementSpinner();
         }
