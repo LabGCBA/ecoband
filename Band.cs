@@ -395,8 +395,6 @@ namespace EcoBand {
             try {
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
 
-                if (characteristic == null) Log.Error("ERROR", "SERVICE IS NULL");
-
                 return await WriteToCharacteristic(data, characteristic);
             }
             catch (Exception ex) {
@@ -413,13 +411,8 @@ namespace EcoBand {
             Log.Debug("BAND", $"##### WriteToCharacteristic(data, UUIDCharacteristic, UUIDService): Trying to write to characteristic {UUIDCharacteristic}...");
 
             try {
-                service = await Device.GetServiceAsync(UUIDService);
-
-                if (service == null) Log.Error("BAND", $"SERVICE IS NULL!!!!!!!!!!!!!!!!!!");
-                    
+                service = await Device.GetServiceAsync(UUIDService);                    
                 characteristic = await service.GetCharacteristicAsync(UUIDCharacteristic);
-
-                if (characteristic == null) Log.Error("BAND", $"CHARACTERISTIC IS NULL!!!!!!!!!!!!!!!!!!");
 
                 return await WriteToCharacteristic(data, characteristic);
             }
