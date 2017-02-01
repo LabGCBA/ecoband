@@ -51,7 +51,6 @@ namespace EcoBand {
         private static readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _device;
-        private static Handler _uiHandler;
         private static TextView _heartRateLabel;
         private static TextView _stepsLabel;
         private static TextView _latitudeLabel;
@@ -556,10 +555,6 @@ namespace EcoBand {
 
         protected override void OnResume() {
             base.OnResume();
-
-            //_uiHandler.Notify();
-
-            // _uiHandler = new Handler(Looper.MainLooper);
 
             CheckGPS();
             CheckConnection().NoAwait();
