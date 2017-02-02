@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using Android.App;
 using Android.Content;
-// using Android.Runtime;
-// using Android.Views;
 using Android.Widget;
 using Android.Locations;
 using Android.Util;
@@ -15,7 +13,6 @@ using Android.OS;
 using Android.Content.PM;
 using Android.Bluetooth;
 using Android.Support.V7.App;
-using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 using Acr.UserDialogs;
 
@@ -23,6 +20,7 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
+using Android.Views;
 
 namespace EcoBand {
     [Activity(Label = "EcoBand", Icon = "@drawable/heart_on", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
@@ -225,8 +223,6 @@ namespace EcoBand {
 
             RunOnUiThread(() => { 
                 _heartRateLabel.Text = e.Measure.ToString();
-
-                Log.Debug("UI THREAD", $"##### BEATS: {e.Measure}");
             });
 
             HideFirstMeasurementSpinner();
