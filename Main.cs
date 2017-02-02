@@ -14,6 +14,8 @@ using Android.Util;
 using Android.OS;
 using Android.Content.PM;
 using Android.Bluetooth;
+using Android.Support.V7.App;
+using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 using Acr.UserDialogs;
 
@@ -23,9 +25,9 @@ using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
 
 namespace EcoBand {
-    [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Label = "EcoBand", Icon = "@drawable/heart_on", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
 
-    public class Main : Activity, ILocationListener {
+    public class Main : AppCompatActivity, ILocationListener {
         public Main() {
             _beatsBuffer = new Queue<int>(5);
 
@@ -530,7 +532,6 @@ namespace EcoBand {
             UserDialogs.Init(this);
 
             _userDialogs = UserDialogs.Instance;
-            _uiHandler = new Handler(Looper.MainLooper);
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
             _stepsLabel = FindViewById<TextView>(Resource.Id.lblStepsPerMinute);
             _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitude);
