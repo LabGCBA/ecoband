@@ -1,16 +1,18 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <!-- Inherit from the light Material Theme -->
-    <style name="EcoBand" parent="Theme.AppCompat.Light.DarkActionBar">
+    <!-- Inherit from the dark AppCompat theme -->
+    <style name="EcoBand" parent="Theme.AppCompat">
         <!-- Override the app bar color -->
 		<item name="actionBarStyle">@style/ActionBarTheme</item>
+		
+		<!-- Override the color of UI controls -->
+		<item name="android:colorForegroundInverse">@color/colorAccent</item>
+		<item name="android:windowBackground">@color/windowBackground</item>
         <item name="android:colorPrimary">@color/colorPrimary</item>
-        <!-- Override the color of UI controls -->
         <item name="android:colorAccent">@color/colorAccent</item>
 		<item name="android:textColorPrimary">@color/textColorPrimary</item>
-		<item name="android:windowBackground">@color/windowBackground</item>
     </style>
-	<style name="ActionBarTheme" parent="@style/Widget.AppCompat.Light.ActionBar.Solid">
+	<style name="ActionBarTheme" parent="@style/Widget.AppCompat.ActionBar.Solid">
 	    <item name="background">@color/windowBackground</item>
 	</style>
 	<style name="Button" parent="EcoBand">
