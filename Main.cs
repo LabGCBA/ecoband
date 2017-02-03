@@ -23,7 +23,7 @@ using Plugin.BLE.Abstractions.Extensions;
 using Android.Views;
 
 namespace EcoBand {
-    [Activity(Label = "EcoBand", Icon = "@drawable/heart_on", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
 
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
@@ -256,6 +256,16 @@ namespace EcoBand {
                addresses.ToList().ForEach((addr) => addrText.Append(addr.ToString() + "\r\n\r\n"));
             }).Start();
             */
+        }
+
+        public override bool OnCreateOptionsMenu(IMenu menu) {
+            MenuInflater.Inflate(Resource.Menu.status, menu);
+
+            return base.OnCreateOptionsMenu(menu);
+        }
+
+        public override bool OnOptionsItemSelected(IMenuItem item) {
+            return base.OnOptionsItemSelected(item);
         }
 
 
@@ -521,11 +531,14 @@ namespace EcoBand {
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            // LayoutInflater inflater = Application.Context.GetSystemService(Context.LayoutInflaterService) as LayoutInflater;
-            // View layout = inflater.Inflate(Resource.Layout.Main, null);
-
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
+            SetSupportActionBar(FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar));
+
+            // SupportActionBar.SetDisplayHomeAsUpEnabled(true);
+            // SupportActionBar.SetDisplayShowHomeEnabled(true);
+            // SupportActionBar.SetDisplayShowCustomEnabled(true);
+            SupportActionBar.SetIcon(Resource.Drawable.heart_on);
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);

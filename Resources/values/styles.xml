@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <resources>
     <!-- Inherit from the dark AppCompat theme -->
-    <style name="EcoBand" parent="Theme.AppCompat">
-        <!-- Override the app bar color -->
-		<item name="actionBarStyle">@style/ActionBarTheme</item>
-		
+    <style name="EcoBand" parent="Theme.AppCompat.NoActionBar">
 		<!-- Override the color of UI controls -->
 		<item name="android:colorForegroundInverse">@color/colorAccent</item>
 		<item name="android:windowBackground">@color/windowBackground</item>
