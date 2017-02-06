@@ -2229,26 +2229,29 @@ namespace EcoBand
 			// aapt resource value: 0x7f02007a
 			public const int icon = 2130837626;
 			
-			// aapt resource value: 0x7f020081
-			public const int notification_template_icon_bg = 2130837633;
-			
 			// aapt resource value: 0x7f02007b
-			public const int places_ic_clear = 2130837627;
+			public const int icon_padding = 2130837627;
+			
+			// aapt resource value: 0x7f020082
+			public const int notification_template_icon_bg = 2130837634;
 			
 			// aapt resource value: 0x7f02007c
-			public const int places_ic_search = 2130837628;
+			public const int places_ic_clear = 2130837628;
 			
 			// aapt resource value: 0x7f02007d
-			public const int powered_by_google_dark = 2130837629;
+			public const int places_ic_search = 2130837629;
 			
 			// aapt resource value: 0x7f02007e
-			public const int powered_by_google_light = 2130837630;
+			public const int powered_by_google_dark = 2130837630;
 			
 			// aapt resource value: 0x7f02007f
-			public const int roundedbg = 2130837631;
+			public const int powered_by_google_light = 2130837631;
 			
 			// aapt resource value: 0x7f020080
-			public const int roundedbgdark = 2130837632;
+			public const int roundedbg = 2130837632;
+			
+			// aapt resource value: 0x7f020081
+			public const int roundedbgdark = 2130837633;
 			
 			static Drawable()
 			{

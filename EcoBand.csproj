@@ -127,6 +127,7 @@
     <AndroidResource Include="Resources\layout\toolbar.axml" />
     <AndroidResource Include="Resources\animator-v21\toolbar_shadow.xml" />
     <AndroidResource Include="Resources\menu\status.xml" />
+    <AndroidResource Include="Resources\drawable\icon_padding.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ItemGroup>

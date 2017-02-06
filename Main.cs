@@ -538,7 +538,7 @@ namespace EcoBand {
             // SupportActionBar.SetDisplayHomeAsUpEnabled(true);
             // SupportActionBar.SetDisplayShowHomeEnabled(true);
             // SupportActionBar.SetDisplayShowCustomEnabled(true);
-            SupportActionBar.SetIcon(Resource.Drawable.heart_on);
+            // SupportActionBar.SetIcon(Resource.Drawable.heart_on);
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
