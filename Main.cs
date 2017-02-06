@@ -27,7 +27,7 @@ namespace EcoBand {
 
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
-            _beatsBuffer = new Queue<int>(5);
+            _beatsBuffer = new Queue<int>(7);
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
