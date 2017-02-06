@@ -4,7 +4,7 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto" >
 	<item
 		android:id="@+id/menuStatusHeartState"
-		android:icon="@drawable/heart_on"
+		android:icon="@drawable/heart"
 		app:showAsAction="always"
 		android:title="Estado pulsaciones" />
 </menu>

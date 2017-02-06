@@ -2218,7 +2218,7 @@ namespace EcoBand
 			public const int design_snackbar_background = 2130837622;
 			
 			// aapt resource value: 0x7f020077
-			public const int heart_on = 2130837623;
+			public const int heart = 2130837623;
 			
 			// aapt resource value: 0x7f020078
 			public const int ic_errorstatus = 2130837624;
