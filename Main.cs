@@ -53,21 +53,23 @@ namespace EcoBand {
         private static readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _device;
+        private static LocationManager _locationManager;
         private static TextView _heartRateLabel;
         private static TextView _stepsLabel;
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
+        private static AnimationDrawable _heartAnimation;
         private static CancellationTokenSource _cancellationTokenSource;
         private static IUserDialogs _userDialogs;
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
-        private static LocationManager _locationManager;
         private static bool _isConnecting;
+        private static int _heartRateErrors;
+        private static int _stepsErrors;
         private static bool _gotFirstMeasurement;
         private static Queue<int> _beatsBuffer;
-        private static int _stepsBuffer = 0;
+        private static int _stepsBuffer;
         private static DateTime? _lastStepTimestamp;
-        private static AnimationDrawable rocketAnimation;
         private const int _measurementInterval = 15000;
         private const int _stepsInterval = 5000;
         private const int _requestEnableBluetooth = 2;
@@ -155,8 +157,7 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Starting new measurement cycle...");
 
             try {
-                SetMeasurementsTimer();
-                StartMeasuring().NoAwait();
+                Refresh().NoAwait();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"##### Error starting measurements: {ex.Message}");
@@ -273,7 +274,10 @@ namespace EcoBand {
         }
 
         public override bool OnOptionsItemSelected(IMenuItem item) {
-            StartHeartAnimation();
+            if (item.ItemId == Resource.Id.menuStatusHeartState) {
+                if (_heartRateErrors > 0) _userDialogs.Toast("Error al comunicarse con el dispositivo");
+                else _userDialogs.Toast("Midiendo pulsaciones");
+            }
 
             return base.OnOptionsItemSelected(item);
         }
@@ -351,11 +355,14 @@ namespace EcoBand {
                         ShowFirstMeasurementSpinner();
 
                         try {
-                            await Connect();
+                            await Connect()
+                                .TimeoutAfter(TimeSpan.FromSeconds(5), System.Reactive.Concurrency.Scheduler.Default)
+                                .ContinueWith(async (task) => { await CheckConnection(); }, TaskContinuationOptions.OnlyOnFaulted);
                         }
                         catch (Exception ex) {
                             Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
-
+                        }
+                        finally { 
                             HideFirstMeasurementSpinner();
                         }
                     }
@@ -427,28 +434,49 @@ namespace EcoBand {
 
                 _device = new Band(_device.Device);
 
-                SetDeviceEventHandlers().NoAwait();
+                SetDeviceEventHandlers();
+
+                await StartMeasuringActivity();
+
+                SetMeasurementsTimer();
+                SetStepsTimer();
+                LoadHeartAnimation();
             }
         }
 
-        private async Task Disconnect(Band band) {
+        private async Task Disconnect() {
             try {
+                /*
                 RunOnUiThread(() => {
                     _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
                 });
+                */
 
-                await _adapter.DisconnectDeviceAsync(band.Device);
+                await _adapter.DisconnectDeviceAsync(_device.Device);
             }
             catch (Exception ex) {
-                _userDialogs.Alert(ex.Message, $"Error al desconectarse de {band.Device.Name}");
+                _userDialogs.Alert(ex.Message, $"Error al desconectarse de {_device.Device.Name}");
 
                 return;
             }
+            /*
             finally {
                 RunOnUiThread(() => {
                     _userDialogs.HideLoading();
                 });
             }
+            */
+        }
+
+        private async Task Refresh() { 
+            if (_heartRateErrors > 1 || _stepsErrors > 1) {
+                await Disconnect();
+                await CheckConnection();
+            }
+
+            await StartMeasuringActivity();
+
+            SetMeasurementsTimer();
         }
 
         private void SetTimer(int time, Timer instance, TimerCallback callback) {
@@ -469,15 +497,10 @@ namespace EcoBand {
             SetTimer(_stepsInterval, _stepsTimer, OnStepsTime);
         }
 
-        private async Task SetDeviceEventHandlers() {
+        private void SetDeviceEventHandlers() {
             try {
                 _device.Steps += OnStepsChange;
                 _device.HeartRate += OnHeartRateChange;
-
-                await StartMeasuring();
-
-                SetMeasurementsTimer();
-                SetStepsTimer();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error setting device event handlers: {ex.Message}");
@@ -497,7 +520,7 @@ namespace EcoBand {
             else Log.Warn("MAIN", "Could not determine a location provider.");
         }
 
-        private async Task StartMeasuring() {
+        private async Task StartMeasuringActivity() {
             bool isMeasuringHeartRate;
             bool isMeasuringSteps;
 
@@ -505,8 +528,19 @@ namespace EcoBand {
                 isMeasuringHeartRate = await _device.StartMeasuringHeartRate();
                 isMeasuringSteps = await _device.StartMeasuringSteps();
 
-                if (!isMeasuringHeartRate) Alert("Error del dispositivo", "No se pudo empezar a medir las pulsaciones");
-                if (!isMeasuringSteps) Alert("Error del dispositivo", "No se pudo empezar a medir los pasos");
+                if (!isMeasuringHeartRate) {
+                    _heartRateErrors++;
+
+                    _heartAnimation.Stop();
+                }
+                else { 
+                    _heartRateErrors = 0;
+
+                    _heartAnimation.Start();
+                }
+
+                if (!isMeasuringSteps) _stepsErrors++;
+                else _stepsErrors = 0;
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error starting measurements: {ex.Message}");
@@ -521,7 +555,7 @@ namespace EcoBand {
 
         private void ShowFirstMeasurementSpinner() {
             RunOnUiThread(() => {
-                _userDialogs.ShowLoading("Activando sensores...");
+                _userDialogs.ShowLoading("Conectando...");
             });
         }
 
@@ -531,11 +565,12 @@ namespace EcoBand {
             });
         }
 
-        private void StartHeartAnimation() { 
+        private void LoadHeartAnimation() { 
             FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).SetIcon(Resource.Drawable.heart_animation);
-            rocketAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
 
-            rocketAnimation.Start();
+            _heartAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
+
+            _heartAnimation.Start();
         }
 
 
