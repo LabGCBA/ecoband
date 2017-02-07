@@ -21,6 +21,8 @@ using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
 using Android.Views;
+using Android.Graphics.Drawables;
+
 
 namespace EcoBand {
     [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
@@ -61,9 +63,11 @@ namespace EcoBand {
         private static Timer _stepsTimer;
         private static LocationManager _locationManager;
         private static bool _isConnecting;
+        private static bool _gotFirstMeasurement;
         private static Queue<int> _beatsBuffer;
         private static int _stepsBuffer = 0;
         private static DateTime? _lastStepTimestamp;
+        private static AnimationDrawable rocketAnimation;
         private const int _measurementInterval = 15000;
         private const int _stepsInterval = 5000;
         private const int _requestEnableBluetooth = 2;
@@ -156,8 +160,6 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"##### Error starting measurements: {ex.Message}");
-
-                HideFirstMeasurementSpinner();
             }
         }
 
@@ -194,16 +196,18 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error starting a new steps cycle: {ex.Message}");
-
-                HideFirstMeasurementSpinner();
             }
         }
 
         private void OnStepsChange(object sender, MeasureEventArgs e) {
             if (_lastStepTimestamp == null) _lastStepTimestamp = DateTime.Now;
+            if (!_gotFirstMeasurement) {
+                _gotFirstMeasurement = true;
+
+                HideFirstMeasurementSpinner();
+            }
 
             _stepsBuffer++;
-            HideFirstMeasurementSpinner();
         }
 
         private void OnHeartRateChange(object sender, MeasureEventArgs e) {
@@ -225,7 +229,11 @@ namespace EcoBand {
                 _heartRateLabel.Text = e.Measure.ToString();
             });
 
-            HideFirstMeasurementSpinner();
+            if (!_gotFirstMeasurement) {
+                _gotFirstMeasurement = true;
+
+                HideFirstMeasurementSpinner();
+            }
         }
 
         public void OnProviderDisabled(string provider) {
@@ -236,9 +244,11 @@ namespace EcoBand {
             StartMeasuringLocation();
         }
 
+        /*
         public void OnStatusChanged(string provider, Availability status, Bundle extras) {
-            
+
         }
+        */
 
         public void OnLocationChanged(Location location) {
             RunOnUiThread(() => {
@@ -265,6 +275,8 @@ namespace EcoBand {
         }
 
         public override bool OnOptionsItemSelected(IMenuItem item) {
+            StartHeartAnimation();
+
             return base.OnOptionsItemSelected(item);
         }
 
@@ -521,6 +533,13 @@ namespace EcoBand {
             });
         }
 
+        private void StartHeartAnimation() { 
+            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).SetIcon(Resource.Drawable.heart_animation);
+            rocketAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
+
+            rocketAnimation.Start();
+        }
+
 
         /**************************************************************************
 
@@ -534,6 +553,8 @@ namespace EcoBand {
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
             SetSupportActionBar(FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar));
+
+            // FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).SetLogo(Resource.Drawable.heart_animation);
 
             // SupportActionBar.SetDisplayHomeAsUpEnabled(true);
             // SupportActionBar.SetDisplayShowHomeEnabled(true);

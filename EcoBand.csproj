@@ -152,6 +152,23 @@
     <AndroidResource Include="Resources\animator-v21\toolbar_shadow.xml" />
     <AndroidResource Include="Resources\menu\status.xml" />
     <AndroidResource Include="Resources\drawable\icon_padding.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_00.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_01.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_02.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_03.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_04.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_05.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_06.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_07.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_08.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_09.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_10.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_11.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_12.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_13.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_14.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_15.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ItemGroup>
