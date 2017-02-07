@@ -2251,58 +2251,37 @@ namespace EcoBand
 			public const int heart_animation_08 = 2130837633;
 			
 			// aapt resource value: 0x7f020082
-			public const int heart_animation_09 = 2130837634;
+			public const int ic_errorstatus = 2130837634;
 			
 			// aapt resource value: 0x7f020083
-			public const int heart_animation_10 = 2130837635;
+			public const int ic_successstatus = 2130837635;
 			
 			// aapt resource value: 0x7f020084
-			public const int heart_animation_11 = 2130837636;
+			public const int icon = 2130837636;
 			
 			// aapt resource value: 0x7f020085
-			public const int heart_animation_12 = 2130837637;
-			
-			// aapt resource value: 0x7f020086
-			public const int heart_animation_13 = 2130837638;
-			
-			// aapt resource value: 0x7f020087
-			public const int heart_animation_14 = 2130837639;
-			
-			// aapt resource value: 0x7f020088
-			public const int heart_animation_15 = 2130837640;
-			
-			// aapt resource value: 0x7f020089
-			public const int ic_errorstatus = 2130837641;
-			
-			// aapt resource value: 0x7f02008a
-			public const int ic_successstatus = 2130837642;
-			
-			// aapt resource value: 0x7f02008b
-			public const int icon = 2130837643;
+			public const int icon_padding = 2130837637;
 			
 			// aapt resource value: 0x7f02008c
-			public const int icon_padding = 2130837644;
+			public const int notification_template_icon_bg = 2130837644;
 			
-			// aapt resource value: 0x7f020093
-			public const int notification_template_icon_bg = 2130837651;
+			// aapt resource value: 0x7f020086
+			public const int places_ic_clear = 2130837638;
 			
-			// aapt resource value: 0x7f02008d
-			public const int places_ic_clear = 2130837645;
+			// aapt resource value: 0x7f020087
+			public const int places_ic_search = 2130837639;
 			
-			// aapt resource value: 0x7f02008e
-			public const int places_ic_search = 2130837646;
+			// aapt resource value: 0x7f020088
+			public const int powered_by_google_dark = 2130837640;
 			
-			// aapt resource value: 0x7f02008f
-			public const int powered_by_google_dark = 2130837647;
+			// aapt resource value: 0x7f020089
+			public const int powered_by_google_light = 2130837641;
 			
-			// aapt resource value: 0x7f020090
-			public const int powered_by_google_light = 2130837648;
+			// aapt resource value: 0x7f02008a
+			public const int roundedbg = 2130837642;
 			
-			// aapt resource value: 0x7f020091
-			public const int roundedbg = 2130837649;
-			
-			// aapt resource value: 0x7f020092
-			public const int roundedbgdark = 2130837650;
+			// aapt resource value: 0x7f02008b
+			public const int roundedbgdark = 2130837643;
 			
 			static Drawable()
 			{

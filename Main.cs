@@ -244,11 +244,9 @@ namespace EcoBand {
             StartMeasuringLocation();
         }
 
-        /*
         public void OnStatusChanged(string provider, Availability status, Bundle extras) {
 
         }
-        */
 
         public void OnLocationChanged(Location location) {
             RunOnUiThread(() => {
