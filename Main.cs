@@ -14,6 +14,7 @@ using Android.Content.PM;
 using Android.Bluetooth;
 using Android.Support.V7.App;
 
+using AndroidHUD;
 using Acr.UserDialogs;
 
 using Plugin.BLE;
@@ -115,11 +116,13 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Scan timeout elapsed");
             Log.Debug("MAIN", "##### No devices found");
 
-            _userDialogs.Toast("No se pudo encontrar una Mi Band.\nIntenta de nuevo");
+            Toast("No se pudo encontrar una Mi Band", 2000);
         }
 
         private async void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
             _device = null;
+
+            _heartAnimation.Stop();
 
             Log.Debug("MAIN", "##### Trying to reconnect...");
 
@@ -133,6 +136,8 @@ namespace EcoBand {
 
         private async void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
             _device = null;
+
+            _heartAnimation.Stop();
 
             Log.Debug("MAIN", $"##### Device {e.Device.Name} disconnected :(");
             Log.Debug("MAIN", "##### Trying to reconnect...");
@@ -275,8 +280,11 @@ namespace EcoBand {
 
         public override bool OnOptionsItemSelected(IMenuItem item) {
             if (item.ItemId == Resource.Id.menuStatusHeartState) {
-                if (_heartRateErrors > 0) _userDialogs.Toast("Error al comunicarse con el dispositivo");
-                else _userDialogs.Toast("Midiendo pulsaciones");
+                if (_heartRateErrors > 0) Toast("No está midiendo pulsaciones, hubo un error al comunicarse con el dispositivo", 1000);
+                else { 
+                    if (!_gotFirstMeasurement) Toast("Activando sensores...", 1000);
+                    else Toast("Está midiendo pulsaciones", 1000);
+                }
             }
 
             return base.OnOptionsItemSelected(item);
@@ -352,18 +360,20 @@ namespace EcoBand {
             else {
                 if (IsPaired()) {
                     if (_adapter.ConnectedDevices.Count == 0) {
+                        bool success;
+
                         ShowFirstMeasurementSpinner();
 
                         try {
-                            await Connect()
-                                .TimeoutAfter(TimeSpan.FromSeconds(5), System.Reactive.Concurrency.Scheduler.Default)
-                                .ContinueWith(async (task) => { await CheckConnection(); }, TaskContinuationOptions.OnlyOnFaulted);
+                            success = Connect().TimeoutAfter(TimeSpan.FromSeconds(5), System.Reactive.Concurrency.Scheduler.Default).IsCompleted;
+
+                            if (!success) throw new TimeoutException();
                         }
                         catch (Exception ex) {
                             Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
-                        }
-                        finally { 
+
                             HideFirstMeasurementSpinner();
+                            CheckConnection().NoAwait();
                         }
                     }
                 }
@@ -395,7 +405,7 @@ namespace EcoBand {
             else { 
                 Log.Debug("MAIN", "##### Bluetooth is not on :(");
 
-                _userDialogs.Toast("Bluetooth está desactivado");
+                Toast("Bluetooth está desactivado", 2000);
             }
         }
 
@@ -553,9 +563,13 @@ namespace EcoBand {
             });
         }
 
+        private void Toast(string message, int milliseconds, bool centered=false) { 
+            AndHUD.Shared.ShowToast(this, message, AndroidHUD.MaskType.Clear, TimeSpan.FromMilliseconds(milliseconds), centered);
+        }
+
         private void ShowFirstMeasurementSpinner() {
             RunOnUiThread(() => {
-                _userDialogs.ShowLoading("Conectando...");
+                _userDialogs.ShowLoading("Conectando");
             });
         }
 
