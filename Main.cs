@@ -103,7 +103,7 @@ namespace EcoBand {
 
         private async void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
             if (IsKnownDevice(args.Device)) {
-                Log.Debug("MAIN", $"##### Discovered device {args.Device.Name}, with MAC Address {((BluetoothDevice) args.Device.NativeDevice).Address}");
+                Log.Debug("MAIN", $"##### Discovered device {args.Device.Name}");
 
                 await SetUpDevice(args.Device);
             }
@@ -391,29 +391,29 @@ namespace EcoBand {
 
                 nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
 
-                try {
-                    Log.Debug("MAIN", "##### Trying to connect...");
+                using (CancellationTokenSource tokenSource = new CancellationTokenSource()) {
+                    try {
+                        Log.Debug("MAIN", "##### Trying to connect...");
 
-                    // TODO: Create a CancellationToken and feed it to ConnectToKnownDeviceAsync, then use it to cancel the timeouted task
-                    await _adapter.ConnectToDeviceAsync(_device.Device).TimeoutAfter(TimeSpan.FromSeconds(10));
+                        await _adapter.ConnectToDeviceAsync(_device.Device, true, tokenSource.Token).TimeoutAfter(TimeSpan.FromSeconds(10), tokenSource);
 
-                    if (nativeDevice.BondState == Bond.None) {
-                        Log.Debug("MAIN", "##### Bonding...");
+                        if (nativeDevice.BondState == Bond.None) {
+                            Log.Debug("MAIN", "##### Bonding...");
 
-                        nativeDevice.CreateBond();
+                            nativeDevice.CreateBond();
+                        }
+                        else Log.Debug("MAIN", "##### Already bonded");
                     }
-                    else Log.Debug("MAIN", "##### Already bonded");
-                }
-                catch (Exception ex) {
-                    Log.Error("MAIN", $"Connection attempt failed: {ex.Message}");
+                    catch (Exception ex) {
+                        Log.Error("MAIN", $"Connection attempt failed: {ex.Message}");
+
+                        _isConnecting = false;
+
+                        await Connect();
+                    }
 
                     _isConnecting = false;
-
-                    await Connect();
                 }
-
-                _isConnecting = false;
-
             }
             else Log.Debug("MAIN", "##### Connection underway, skipping attempt");
         }
@@ -626,14 +626,9 @@ namespace EcoBand {
             _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
             _locationManager = (LocationManager) GetSystemService(LocationService);
 
-            // text view label
-
-            // Loading Font Face
-            // Typeface tf = Typeface.CreateFromAsset(Application.Context.Assets, fjallaOne);
             nunitoLight = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Nunito-Light.ttf");
             overpassRegular = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Overpass-Light.ttf");
-            // Applying font
-            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/FjallaOne-Regular.ttf");
+
             _heartRateLabel.Typeface = nunitoLight;
             _stepsLabel.Typeface = nunitoLight;
             FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = nunitoLight;

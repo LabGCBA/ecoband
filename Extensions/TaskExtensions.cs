@@ -9,8 +9,9 @@ namespace EcoBand {
             
         }
 
-        public static async Task TimeoutAfter(this Task task, TimeSpan timeout) {
-            if (await Task.WhenAny(task, Task.Delay(timeout)) != task) throw new TimeoutException("The operation has timed out.");
+        public static async Task TimeoutAfter(this Task task, TimeSpan timeout, CancellationTokenSource tokenSource) {
+            if (await Task.WhenAny(task, Task.Delay(timeout, tokenSource.Token)) != task) throw new TimeoutException("The operation has timed out.");
+            else tokenSource.Cancel();
         }
     }
 }
