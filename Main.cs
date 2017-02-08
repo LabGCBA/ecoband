@@ -34,14 +34,11 @@ namespace EcoBand {
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
-            _adapter.DeviceConnected += OnDeviceConnected;
+            _adapter.DeviceAdvertised += OnDeviceAdvertised;
             _adapter.DeviceDiscovered += OnDeviceDiscovered;
+            _adapter.DeviceConnected += OnDeviceConnected;
             _adapter.DeviceDisconnected += OnDeviceDisconnected;
             _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
-        }
-
-        ~Main() {
-            CleanupCancellationToken();
         }
 
 
@@ -60,7 +57,6 @@ namespace EcoBand {
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
         private static AnimationDrawable _heartAnimation;
-        private static CancellationTokenSource _cancellationTokenSource;
         private static IUserDialogs _userDialogs;
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
@@ -86,37 +82,35 @@ namespace EcoBand {
             Log.Debug("MAIN", $"##### State changed to {e.NewState.ToString()}");
         }
 
-        private async void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
-            if (Band.NAME_FILTER.Contains(args.Device.Name) &&
-                Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) args.Device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture))) {
-                Log.Debug("MAIN", $"##### Discovered device {args.Device.Name}");
-
-                _device = new Band(args.Device);
-
-                try {
-                    await StopScanning();
-                    await CheckConnection();
-                }
-                catch (Exception ex) {
-                    Log.Error("MAIN", $"Error: {ex.Message}");
-
-                    return;
-                }
-            }
-        }
-
-        private void OnDeviceConnected(object sender, DeviceEventArgs args) {
-            Log.Debug("MAIN", $"##### Connected to device {args.Device.Name}");
-        }
-
         private async void OnScanTimeoutElapsed(object sender, EventArgs e) {
             await StopScanning();
-            await CheckConnection();
+
+            if (_device == null) await CheckConnection();
 
             Log.Debug("MAIN", "##### Scan timeout elapsed");
             Log.Debug("MAIN", "##### No devices found");
 
             Toast("No se pudo encontrar una Mi Band", 2000);
+        }
+
+        private async void OnDeviceAdvertised(object sender, DeviceEventArgs args) {
+            if (IsKnownDevice(args.Device)) {
+                Log.Debug("MAIN", $"##### Device advertised {args.Device.Name}");
+
+                await SetUpDevice(args.Device);
+            }
+        }
+
+        private async void OnDeviceDiscovered(object sender, DeviceEventArgs args) {
+            if (IsKnownDevice(args.Device)) {
+                Log.Debug("MAIN", $"##### Discovered device {args.Device.Name}, with MAC Address {((BluetoothDevice) args.Device.NativeDevice).Address}");
+
+                await SetUpDevice(args.Device);
+            }
+        }
+
+        private void OnDeviceConnected(object sender, DeviceEventArgs args) {
+            Log.Debug("MAIN", $"##### Connected to device {args.Device.Name}");
         }
 
         private async void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
@@ -160,6 +154,8 @@ namespace EcoBand {
             state = null;
 
             Log.Debug("MAIN", "##### Starting new measurement cycle...");
+
+            LoadHeartAnimation();
 
             try {
                 Refresh().NoAwait();
@@ -210,7 +206,7 @@ namespace EcoBand {
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
 
-                HideFirstMeasurementSpinner();
+                HideSpinner();
             }
 
             _stepsBuffer++;
@@ -238,9 +234,8 @@ namespace EcoBand {
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
 
-                HideFirstMeasurementSpinner();
+                HideSpinner();
                 LoadHeartAnimation();
-                _heartAnimation.Start();
             }
         }
 
@@ -304,23 +299,12 @@ namespace EcoBand {
                 await _adapter.StopScanningForDevicesAsync();
             }
             catch (Exception ex) {
-                Log.Error("MAIN", $"StopScanning() failed :( with error: {ex.Message}");
+                Log.Error("MAIN", $"Error while stopping device scan: {ex.Message}");
 
                 return;
             }
-            finally {
-                CleanupCancellationToken();
-            }
 
             Log.Debug("MAIN", "##### Stopped scanning");
-        }
-
-        private void CleanupCancellationToken() {
-            if (_cancellationTokenSource != null) {
-                _cancellationTokenSource.Dispose();
-
-                _cancellationTokenSource = null;
-            }
         }
 
         private void EnableBluetooth() {
@@ -335,6 +319,25 @@ namespace EcoBand {
             if (!_locationManager.IsProviderEnabled(LocationManager.GpsProvider)) _userDialogs.ShowError("El GPS está desactivado");
         }
 
+        private async Task CheckConnection() {
+            if (!_ble.IsOn) EnableBluetooth();
+            else {
+                if (IsPaired()) {
+                    if (_adapter.ConnectedDevices.Count == 0) await TryConnect();
+                }
+                else if (!_adapter.IsScanning) {
+                    Log.Debug("MAIN", "##### Band is not paired");
+
+                    await Discover();
+                }
+            }
+        }
+
+        private bool IsKnownDevice(IDevice device) {
+            return Band.NAME_FILTER.Contains(device.Name) &&
+                       Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCulture));
+        }
+
         private bool IsPaired() {
             List<IDevice> pairedDevices;
 
@@ -342,7 +345,7 @@ namespace EcoBand {
 
             if (pairedDevices.Count > 0) {
                 foreach (IDevice device in pairedDevices) {
-                    if (Band.MAC_ADDRESS_FILTER.Any(x => ((BluetoothDevice) device.NativeDevice).Address.StartsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
+                    if (IsKnownDevice(device)) {
                         Log.Debug("MAIN", $"##### Paired device: {device.Name}");
 
                         if (_device == null) _device = new Band(device);
@@ -357,37 +360,20 @@ namespace EcoBand {
             return false;
         }
 
-        private async Task CheckConnection() {
-            if (!_ble.IsOn) EnableBluetooth();
-            else {
-                if (IsPaired()) {
-                    if (_adapter.ConnectedDevices.Count == 0) {
-                        await TryConnect();
-                    } // TODO: animation restart on pause
-                }
-                else if (!_adapter.IsScanning) {
-                    Log.Debug("MAIN", "##### Band is not paired");
-
-                    await Discover();
-                }
-            }
-        }
-
         private async Task Discover() {
             if (_ble.IsOn) {
                 Log.Debug("MAIN", "##### Bluetooth is on");
 
                 if (!_adapter.IsScanning) {
-                    _cancellationTokenSource = new CancellationTokenSource();
+                    using (CancellationTokenSource tokenSource = new CancellationTokenSource()) { 
+                        Log.Debug("MAIN", "##### Beginning scan...");
 
-                    Log.Debug("MAIN", "##### Beginning scan...");
+                        ShowSpinner("Buscando dispositivos");
 
-                    RunOnUiThread(() => {
-                        _userDialogs.ShowLoading("Buscando dispositivos...");
-                    });
+                        await _adapter.StartScanningForDevicesAsync(tokenSource.Token);
 
-                    await _adapter.StartScanningForDevicesAsync(_cancellationTokenSource.Token);
-                    await CheckConnection();
+                        Log.Debug("MAIN", $"##### Just finished scanning, found {_adapter.ConnectedDevices.Count} devices");
+                    }
                 }
             }
             else { 
@@ -408,7 +394,8 @@ namespace EcoBand {
                 try {
                     Log.Debug("MAIN", "##### Trying to connect...");
 
-                    await _adapter.ConnectToDeviceAsync(_device.Device, true).TimeoutAfter(TimeSpan.FromSeconds(7));
+                    // TODO: Create a CancellationToken and feed it to ConnectToKnownDeviceAsync, then use it to cancel the timeouted task
+                    await _adapter.ConnectToDeviceAsync(_device.Device).TimeoutAfter(TimeSpan.FromSeconds(10));
 
                     if (nativeDevice.BondState == Bond.None) {
                         Log.Debug("MAIN", "##### Bonding...");
@@ -466,27 +453,41 @@ namespace EcoBand {
             SetMeasurementsTimer();
         }
 
-        private async Task<bool> TryConnect() { 
-            ShowFirstMeasurementSpinner();
+        private async Task TryConnect() { 
+            ShowSpinner("Conectando");
 
             try {
                 await Connect();
-                await SetUpDevice();
+                await SetUpActivities();
 
-                return true;
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
 
-                HideFirstMeasurementSpinner();
-
-                return false;
+                HideSpinner();
             }
         }
 
-        private async Task SetUpDevice() {
-            _device = new Band(_device.Device);
+        private async Task SetUpDevice(IDevice device) { 
+            if (_device == null) {
+                _device = new Band(device);
 
+                try {
+                    await StopScanning();
+
+                    HideSpinner();
+
+                    await TryConnect();
+                }
+                catch (Exception ex) {
+                    Log.Error("MAIN", $"Error setting up device: {ex.Message}");
+
+                    return;
+                }
+            }
+        }
+
+        private async Task SetUpActivities() {
             SetDeviceEventHandlers();
 
             try {
@@ -572,13 +573,13 @@ namespace EcoBand {
             AndHUD.Shared.ShowToast(this, message, AndroidHUD.MaskType.Clear, TimeSpan.FromMilliseconds(milliseconds), centered);
         }
 
-        private void ShowFirstMeasurementSpinner() {
+        private void ShowSpinner(string message) {
             RunOnUiThread(() => {
-                _userDialogs.ShowLoading("Conectando");
+                _userDialogs.ShowLoading(message);
             });
         }
 
-        private void HideFirstMeasurementSpinner() {
+        private void HideSpinner() {
             RunOnUiThread(() => {
                 _userDialogs.HideLoading();
             });
@@ -634,6 +635,7 @@ namespace EcoBand {
             // Applying font
             // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/FjallaOne-Regular.ttf");
             _heartRateLabel.Typeface = nunitoLight;
+            _stepsLabel.Typeface = nunitoLight;
             FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = nunitoLight;
             // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Light.ttf");
             // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Oswald-Regular.ttf");
