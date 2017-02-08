@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Reactive.Concurrency;
+using System.Threading;
 
 
 namespace EcoBand {
@@ -11,8 +9,8 @@ namespace EcoBand {
             
         }
 
-        public static Task TimeoutAfter(this Task task, TimeSpan timeout, IScheduler scheduler) {
-            return task.ToObservable().Timeout(timeout, scheduler).ToTask();
+        public static async Task TimeoutAfter(this Task task, TimeSpan timeout) {
+            if (await Task.WhenAny(task, Task.Delay(timeout)) != task) throw new TimeoutException("The operation has timed out.");
         }
     }
 }

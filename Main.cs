@@ -23,7 +23,7 @@ using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
 using Android.Views;
 using Android.Graphics.Drawables;
-
+using Android.Graphics;
 
 namespace EcoBand {
     [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
@@ -239,6 +239,8 @@ namespace EcoBand {
                 _gotFirstMeasurement = true;
 
                 HideFirstMeasurementSpinner();
+                LoadHeartAnimation();
+                _heartAnimation.Start();
             }
         }
 
@@ -360,22 +362,8 @@ namespace EcoBand {
             else {
                 if (IsPaired()) {
                     if (_adapter.ConnectedDevices.Count == 0) {
-                        bool success;
-
-                        ShowFirstMeasurementSpinner();
-
-                        try {
-                            success = Connect().TimeoutAfter(TimeSpan.FromSeconds(5), System.Reactive.Concurrency.Scheduler.Default).IsCompleted;
-
-                            if (!success) throw new TimeoutException();
-                        }
-                        catch (Exception ex) {
-                            Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
-
-                            HideFirstMeasurementSpinner();
-                            CheckConnection().NoAwait();
-                        }
-                    }
+                        await TryConnect();
+                    } // TODO: animation restart on pause
                 }
                 else if (!_adapter.IsScanning) {
                     Log.Debug("MAIN", "##### Band is not paired");
@@ -412,7 +400,7 @@ namespace EcoBand {
         private async Task Connect() {
             BluetoothDevice nativeDevice;
 
-            if (!_isConnecting) { 
+            if (!_isConnecting) {
                 _isConnecting = true;
 
                 nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
@@ -420,7 +408,7 @@ namespace EcoBand {
                 try {
                     Log.Debug("MAIN", "##### Trying to connect...");
 
-                    await _adapter.ConnectToDeviceAsync(_device.Device, true);
+                    await _adapter.ConnectToDeviceAsync(_device.Device, true).TimeoutAfter(TimeSpan.FromSeconds(7));
 
                     if (nativeDevice.BondState == Bond.None) {
                         Log.Debug("MAIN", "##### Bonding...");
@@ -430,28 +418,17 @@ namespace EcoBand {
                     else Log.Debug("MAIN", "##### Already bonded");
                 }
                 catch (Exception ex) {
-                    _userDialogs.Alert(ex.Message, "Falló la conexión con Mi Band.");
-
-                    return;
-                }
-                finally {
-                    RunOnUiThread(() => {
-                        _userDialogs.HideLoading();
-                    });
+                    Log.Error("MAIN", $"Connection attempt failed: {ex.Message}");
 
                     _isConnecting = false;
+
+                    await Connect();
                 }
 
-                _device = new Band(_device.Device);
+                _isConnecting = false;
 
-                SetDeviceEventHandlers();
-
-                await StartMeasuringActivity();
-
-                SetMeasurementsTimer();
-                SetStepsTimer();
-                LoadHeartAnimation();
             }
+            else Log.Debug("MAIN", "##### Connection underway, skipping attempt");
         }
 
         private async Task Disconnect() {
@@ -489,6 +466,41 @@ namespace EcoBand {
             SetMeasurementsTimer();
         }
 
+        private async Task<bool> TryConnect() { 
+            ShowFirstMeasurementSpinner();
+
+            try {
+                await Connect();
+                await SetUpDevice();
+
+                return true;
+            }
+            catch (Exception ex) {
+                Log.Error("MAIN", $"Error connecting to device: {ex.Message}");
+
+                HideFirstMeasurementSpinner();
+
+                return false;
+            }
+        }
+
+        private async Task SetUpDevice() {
+            _device = new Band(_device.Device);
+
+            SetDeviceEventHandlers();
+
+            try {
+                await StartMeasuringActivity();
+            }
+            catch (Exception ex) {
+                Log.Error("MAIN", $"Error starting to measure activity: {ex.Message}");
+            }
+
+            SetMeasurementsTimer();
+            SetStepsTimer();
+            LoadHeartAnimation();
+        }
+
         private void SetTimer(int time, Timer instance, TimerCallback callback) {
             TimerCallback timerDelegate;
             TimerState state;
@@ -508,13 +520,8 @@ namespace EcoBand {
         }
 
         private void SetDeviceEventHandlers() {
-            try {
-                _device.Steps += OnStepsChange;
-                _device.HeartRate += OnHeartRateChange;
-            }
-            catch (Exception ex) {
-                Log.Error("MAIN", $"Error setting device event handlers: {ex.Message}");
-            }
+            _device.Steps += OnStepsChange;
+            _device.HeartRate += OnHeartRateChange;
         }
 
         private void StartMeasuringLocation() {
@@ -545,8 +552,6 @@ namespace EcoBand {
                 }
                 else { 
                     _heartRateErrors = 0;
-
-                    _heartAnimation.Start();
                 }
 
                 if (!isMeasuringSteps) _stepsErrors++;
@@ -579,12 +584,14 @@ namespace EcoBand {
             });
         }
 
-        private void LoadHeartAnimation() { 
-            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).SetIcon(Resource.Drawable.heart_animation);
+        private void LoadHeartAnimation() {
+            RunOnUiThread(() => { 
+                FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).SetIcon(Resource.Drawable.heart_animation);
 
-            _heartAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
+                _heartAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
 
-            _heartAnimation.Start();
+                _heartAnimation.Start();
+            });
         }
 
 
@@ -596,6 +603,9 @@ namespace EcoBand {
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
+
+            Typeface nunitoLight;
+            Typeface overpassRegular;
 
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
@@ -609,11 +619,28 @@ namespace EcoBand {
             // SupportActionBar.SetIcon(Resource.Drawable.heart_on);
 
             _userDialogs = UserDialogs.Instance;
-            _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartBeats);
-            _stepsLabel = FindViewById<TextView>(Resource.Id.lblStepsPerMinute);
+            _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartRateCount);
+            _stepsLabel = FindViewById<TextView>(Resource.Id.lblStepsCount);
             _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitude);
             _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
             _locationManager = (LocationManager) GetSystemService(LocationService);
+
+            // text view label
+
+            // Loading Font Face
+            // Typeface tf = Typeface.CreateFromAsset(Application.Context.Assets, fjallaOne);
+            nunitoLight = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Nunito-Light.ttf");
+            overpassRegular = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Overpass-Light.ttf");
+            // Applying font
+            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/FjallaOne-Regular.ttf");
+            _heartRateLabel.Typeface = nunitoLight;
+            FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = nunitoLight;
+            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Light.ttf");
+            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Oswald-Regular.ttf");
+            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/StintUltraExpanded-Regular.ttf");
+            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/BioRhyme-ExtraLight.ttf");
+
+            // FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Share-Regular.ttf");
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
@@ -637,6 +664,8 @@ namespace EcoBand {
             CheckGPS();
             CheckConnection().NoAwait();
             StartMeasuringLocation();
+
+            _gotFirstMeasurement = false;
         }
     }
 

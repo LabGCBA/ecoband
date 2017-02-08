@@ -24,7 +24,7 @@
 		    android:useDefaultMargins="true">
 		    <TextView
 		        android:theme="@style/TextView"
-		        android:id="@+id/lblHeartBeats"
+		        android:id="@+id/lblHeartRateCount"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="0"
@@ -37,17 +37,19 @@
 		        android:textStyle="normal" />
 		    <TextView
 		        android:theme="@style/TextView"
+				android:id="@+id/lblHeartRateTitle"
+				android:textAllCaps="true"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="Pulsaciones por minuto"
-		        android:textSize="14dip"
+		        android:textSize="12dip"
 		        android:layout_row="1"
 		        android:layout_column="0"
 				android:layout_columnSpan="2"
 		        android:gravity="center" />
 		    <TextView
 		        android:theme="@style/TextView"
-		        android:id="@+id/lblStepsPerMinute"
+		        android:id="@+id/lblStepsCount"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="0"
@@ -60,6 +62,7 @@
 		        android:textStyle="normal" />
 		    <TextView
 		        android:theme="@style/TextView"
+				android:id="@+id/lblStepsTitle"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="Pasos por minuto"
