@@ -31,6 +31,7 @@ namespace EcoBand {
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
             _beatsBuffer = new Queue<int>(7);
+            _heartAnimations = new List<AnimationDrawable>();
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -52,11 +53,13 @@ namespace EcoBand {
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _device;
         private static LocationManager _locationManager;
+        private static Android.Support.V7.Widget.Toolbar _toolbar;
+        private static IMenuItem _heartRateIcon;
         private static TextView _heartRateLabel;
         private static TextView _stepsLabel;
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
-        private static AnimationDrawable _heartAnimation;
+        private static List<AnimationDrawable> _heartAnimations;
         private static IUserDialogs _userDialogs;
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
@@ -116,7 +119,7 @@ namespace EcoBand {
         private async void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
             _device = null;
 
-            _heartAnimation.Stop();
+            ((AnimationDrawable) _heartRateIcon.Icon).Stop();
 
             Log.Debug("MAIN", "##### Trying to reconnect...");
 
@@ -131,7 +134,7 @@ namespace EcoBand {
         private async void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
             _device = null;
 
-            _heartAnimation.Stop();
+            ((AnimationDrawable) _heartRateIcon.Icon).Stop();
 
             Log.Debug("MAIN", $"##### Device {e.Device.Name} disconnected :(");
             Log.Debug("MAIN", "##### Trying to reconnect...");
@@ -155,10 +158,11 @@ namespace EcoBand {
 
             Log.Debug("MAIN", "##### Starting new measurement cycle...");
 
-            LoadHeartAnimation();
+            PauseAnimation(_heartRateIcon, _heartAnimations);
 
             try {
                 StartMeasuringActivity().NoAwait();
+                SetMeasurementsTimer();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"##### Error starting measurements: {ex.Message}");
@@ -181,6 +185,8 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Starting new steps cycle...");
 
             try {
+                Refresh().NoAwait();
+
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
@@ -194,6 +200,7 @@ namespace EcoBand {
                 }
 
                 SetStepsTimer();
+
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error starting a new steps cycle: {ex.Message}");
@@ -226,16 +233,21 @@ namespace EcoBand {
 
             _beatsBuffer.Enqueue(e.Measure);
 
-            RunOnUiThread(() => { 
-                _heartRateLabel.Text = e.Measure.ToString();
-            });
-
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
 
+                LoadHeartAnimation(Resource.Drawable.heart_animation_00);
                 HideSpinner();
-                LoadHeartAnimation();
             }
+
+            RunOnUiThread(() => {
+                AnimationDrawable heartRateAnimation;
+
+                heartRateAnimation = (AnimationDrawable) _heartRateIcon.Icon;
+                _heartRateLabel.Text = e.Measure.ToString();
+
+                if (!heartRateAnimation.IsRunning) heartRateAnimation.Start();
+            });
         }
 
         public void OnProviderDisabled(string provider) {
@@ -270,6 +282,8 @@ namespace EcoBand {
 
         public override bool OnCreateOptionsMenu(IMenu menu) {
             MenuInflater.Inflate(Resource.Menu.status, menu);
+
+            _heartRateIcon = menu.FindItem(Resource.Id.menuStatusHeartState);
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -503,7 +517,7 @@ namespace EcoBand {
 
             SetMeasurementsTimer();
             SetStepsTimer();
-            LoadHeartAnimation();
+            // LoadHeartAnimation();
         }
 
         private void SetTimer(int time, Timer instance, TimerCallback callback) {
@@ -553,11 +567,9 @@ namespace EcoBand {
                 if (!isMeasuringHeartRate) {
                     _heartRateErrors++;
 
-                    _heartAnimation.Stop();
+                    PauseAnimation(_heartRateIcon, _heartAnimations);
                 }
-                else { 
-                    _heartRateErrors = 0;
-                }
+                else _heartRateErrors = 0;
 
                 if (!isMeasuringSteps) _stepsErrors++;
                 else _stepsErrors = 0;
@@ -589,13 +601,38 @@ namespace EcoBand {
             });
         }
 
-        private void LoadHeartAnimation() {
+        private void LoadHeartAnimation(int animation) {
             RunOnUiThread(() => { 
-                FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).SetIcon(Resource.Drawable.heart_animation);
+                _heartRateIcon.SetIcon(animation);
 
-                _heartAnimation = (AnimationDrawable) FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).Menu.FindItem(Resource.Id.menuStatusHeartState).Icon;
+                ((AnimationDrawable) _heartRateIcon.Icon).Start();
+            });
+        }
 
-                _heartAnimation.Start();
+        private void PauseAnimation(IMenuItem target, List<AnimationDrawable> list) {
+            Drawable currentFrame;
+            Drawable checkFrame;
+            AnimationDrawable animation;
+            int currentAnimationIndex;
+            int absoluteIndex;
+
+            RunOnUiThread(() => {
+                animation = (AnimationDrawable) target.Icon;
+                currentAnimationIndex = list.IndexOf(animation);
+
+                animation.Stop();
+
+                currentFrame = animation.Current;
+
+                for (int i = 0; i < animation.NumberOfFrames; i++) {
+                    checkFrame = animation.GetFrame(i);
+
+                    if (checkFrame == currentFrame) {
+                        absoluteIndex = Math.Abs(i - currentAnimationIndex);
+
+                        target.SetIcon(list[absoluteIndex]);
+                    }
+                }
             });
         }
 
@@ -614,13 +651,16 @@ namespace EcoBand {
 
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
-            SetSupportActionBar(FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar));
+
+            _toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
+
+            SetSupportActionBar(_toolbar);
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartRateCount);
             _stepsLabel = FindViewById<TextView>(Resource.Id.lblStepsCount);
-            _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitude);
-            _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
+            _latitudeLabel = FindViewById<TextView>(Resource.Id.lblLatitudeValue);
+            _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitudeValue);
             _locationManager = (LocationManager) GetSystemService(LocationService);
 
             rubikLight = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Light.ttf");
@@ -630,6 +670,20 @@ namespace EcoBand {
             _stepsLabel.Typeface = rubikLight;
             FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = rubikRegular;
             FindViewById<TextView>(Resource.Id.lblStepsTitle).Typeface = rubikRegular;
+            FindViewById<TextView>(Resource.Id.lblLatitudeTitle).Typeface = rubikRegular;
+            FindViewById<TextView>(Resource.Id.lblLatitudeValue).Typeface = rubikRegular;
+            FindViewById<TextView>(Resource.Id.lblLongitudeTitle).Typeface = rubikRegular;
+            FindViewById<TextView>(Resource.Id.lblLongitudeValue).Typeface = rubikRegular;
+
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_00));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_01));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_02));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_03));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_04));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_05));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_06));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_07));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_08));
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
