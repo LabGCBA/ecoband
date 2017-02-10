@@ -158,7 +158,7 @@ namespace EcoBand {
             LoadHeartAnimation();
 
             try {
-                Refresh().NoAwait();
+                StartMeasuringActivity().NoAwait();
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"##### Error starting measurements: {ex.Message}");
@@ -181,7 +181,6 @@ namespace EcoBand {
             Log.Debug("MAIN", "##### Starting new steps cycle...");
 
             try {
-                if (_device == null) CheckConnection().NoAwait();
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
@@ -443,14 +442,18 @@ namespace EcoBand {
         }
 
         private async Task Refresh() { 
-            if (_heartRateErrors > 1 || _stepsErrors > 1) {
-                await Disconnect();
-                await CheckConnection();
+            try {
+                if (_heartRateErrors > 1 || _stepsErrors > 1) {
+                    Log.Debug("MAIN", "Refreshing connection...");
+
+                    await Disconnect();
+                    await CheckConnection();
+                    await SetUpActivities();
+                }
             }
-
-            await StartMeasuringActivity();
-
-            SetMeasurementsTimer();
+            catch (Exception ex) {
+                Log.Error("MAIN", $"Error refreshing connection: {ex.Message}");
+            }
         }
 
         private async Task TryConnect() { 
@@ -458,6 +461,9 @@ namespace EcoBand {
 
             try {
                 await Connect();
+
+                SetDeviceEventHandlers();
+
                 await SetUpActivities();
 
             }
@@ -488,8 +494,6 @@ namespace EcoBand {
         }
 
         private async Task SetUpActivities() {
-            SetDeviceEventHandlers();
-
             try {
                 await StartMeasuringActivity();
             }
@@ -605,19 +609,12 @@ namespace EcoBand {
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            Typeface nunitoLight;
-            Typeface overpassRegular;
+            Typeface rubikLight;
+            Typeface rubikRegular;
 
             SetContentView(Resource.Layout.Main);
             UserDialogs.Init(this);
             SetSupportActionBar(FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar));
-
-            // FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar).SetLogo(Resource.Drawable.heart_animation);
-
-            // SupportActionBar.SetDisplayHomeAsUpEnabled(true);
-            // SupportActionBar.SetDisplayShowHomeEnabled(true);
-            // SupportActionBar.SetDisplayShowCustomEnabled(true);
-            // SupportActionBar.SetIcon(Resource.Drawable.heart_on);
 
             _userDialogs = UserDialogs.Instance;
             _heartRateLabel = FindViewById<TextView>(Resource.Id.lblHeartRateCount);
@@ -626,18 +623,13 @@ namespace EcoBand {
             _longitudeLabel = FindViewById<TextView>(Resource.Id.lblLongitude);
             _locationManager = (LocationManager) GetSystemService(LocationService);
 
-            nunitoLight = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Nunito-Light.ttf");
-            overpassRegular = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Overpass-Light.ttf");
+            rubikLight = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Light.ttf");
+            rubikRegular = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Regular.ttf");
 
-            _heartRateLabel.Typeface = nunitoLight;
-            _stepsLabel.Typeface = nunitoLight;
-            FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = nunitoLight;
-            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Rubik-Light.ttf");
-            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Oswald-Regular.ttf");
-            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/StintUltraExpanded-Regular.ttf");
-            // _heartRateLabel.Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/BioRhyme-ExtraLight.ttf");
-
-            // FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = Typeface.CreateFromAsset(Application.Context.Assets, "fonts/Share-Regular.ttf");
+            _heartRateLabel.Typeface = rubikLight;
+            _stepsLabel.Typeface = rubikLight;
+            FindViewById<TextView>(Resource.Id.lblHeartRateTitle).Typeface = rubikRegular;
+            FindViewById<TextView>(Resource.Id.lblStepsTitle).Typeface = rubikRegular;
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
