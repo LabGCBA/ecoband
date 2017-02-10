@@ -25,7 +25,7 @@
 		    <TextView
 		        android:theme="@style/TextView"
 		        android:id="@+id/lblHeartRateCount"
-				android:lineSpacingMultiplier="0.8"
+				android:lineSpacingMultiplier="0.75"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="0"
@@ -51,7 +51,7 @@
 		    <TextView
 		        android:theme="@style/TextView"
 		        android:id="@+id/lblStepsCount"
-				android:lineSpacingMultiplier="0.8"
+				android:lineSpacingMultiplier="0.75"
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="0"
@@ -98,7 +98,7 @@
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="Latitud"
-		        android:textSize="14dip"
+		        android:textSize="12dip"
 		        android:layout_row="6"
 		        android:layout_column="0"
 		        android:gravity="center" />
@@ -120,7 +120,7 @@
 		        android:layout_columnWeight="1"
 		        android:layout_gravity="fill_horizontal"
 		        android:text="Longitud"
-		        android:textSize="14dip"
+		        android:textSize="12dip"
 		        android:layout_row="6"
 		        android:layout_column="1"
 		        android:gravity="center" />
