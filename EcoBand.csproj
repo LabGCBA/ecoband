@@ -152,6 +152,15 @@
     <AndroidResource Include="Resources\animator-v21\toolbar_shadow.xml" />
     <AndroidResource Include="Resources\menu\status.xml" />
     <AndroidResource Include="Resources\drawable\icon_padding.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_00.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_01.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_02.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_03.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_04.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_05.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_06.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_07.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation_frame_08.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_00.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_01.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_02.xml" />
@@ -161,7 +170,6 @@
     <AndroidResource Include="Resources\drawable\heart_animation_06.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_07.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_08.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ItemGroup>
@@ -183,6 +191,7 @@
   <ItemGroup>
     <AndroidAsset Include="Assets\fonts\Rubik-Light.ttf" />
     <AndroidAsset Include="Assets\fonts\Rubik-Regular.ttf" />
+    <AndroidAsset Include="Assets\fonts\Rubik-Medium.ttf" />
   </ItemGroup>
   <Import Project="packages\Xamarin.GooglePlayServices.Basement.29.0.0.2\build\Xamarin.GooglePlayServices.Basement.targets" Condition="Exists('packages\Xamarin.GooglePlayServices.Basement.29.0.0.2\build\Xamarin.GooglePlayServices.Basement.targets')" />
   <Import Project="packages\Xamarin.Android.Support.Vector.Drawable.23.4.0.1\build\Xamarin.Android.Support.Vector.Drawable.targets" Condition="Exists('packages\Xamarin.Android.Support.Vector.Drawable.23.4.0.1\build\Xamarin.Android.Support.Vector.Drawable.targets')" />
