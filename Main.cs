@@ -60,6 +60,7 @@ namespace EcoBand {
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
         private static List<AnimationDrawable> _heartAnimations;
+        private static int _currentHeartAnimationIndex;
         private static IUserDialogs _userDialogs;
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
@@ -613,13 +614,10 @@ namespace EcoBand {
             Drawable currentFrame;
             Drawable checkFrame;
             AnimationDrawable animation;
-            int currentAnimationIndex;
             int absoluteIndex;
 
             RunOnUiThread(() => {
                 animation = (AnimationDrawable) target.Icon;
-                currentAnimationIndex = list.IndexOf(animation);
-
                 animation.Stop();
 
                 currentFrame = animation.Current;
@@ -628,9 +626,11 @@ namespace EcoBand {
                     checkFrame = animation.GetFrame(i);
 
                     if (checkFrame == currentFrame) {
-                        absoluteIndex = Math.Abs(i - currentAnimationIndex);
+                        absoluteIndex = Math.Abs(i - _currentHeartAnimationIndex);
 
                         target.SetIcon(list[absoluteIndex]);
+
+                        _currentHeartAnimationIndex = i;
                     }
                 }
             });
