@@ -447,13 +447,6 @@ namespace EcoBand {
 
                 return;
             }
-            /*
-            finally {
-                RunOnUiThread(() => {
-                    _userDialogs.HideLoading();
-                });
-            }
-            */
         }
 
         private async Task Refresh() { 
@@ -518,7 +511,6 @@ namespace EcoBand {
 
             SetMeasurementsTimer();
             SetStepsTimer();
-            // LoadHeartAnimation();
         }
 
         private void SetTimer(int time, Timer instance, TimerCallback callback) {
@@ -645,6 +637,8 @@ namespace EcoBand {
                 target.SetIcon(newAnimation);
             });
         }
+
+        Co
 
 
         /**************************************************************************
