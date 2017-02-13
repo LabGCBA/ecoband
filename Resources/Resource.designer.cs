@@ -64,7 +64,6 @@ namespace EcoBand
 			global::AndroidHUD.Resource.Styleable.ProgressWheel_ahTextColor = global::EcoBand.Resource.Styleable.ProgressWheel_ahTextColor;
 			global::AndroidHUD.Resource.Styleable.ProgressWheel_ahTextSize = global::EcoBand.Resource.Styleable.ProgressWheel_ahTextSize;
 			global::Splat.Resource.String.library_name = global::EcoBand.Resource.String.library_name;
-			global::Auth0.SDK.Resource.String.library_name = global::EcoBand.Resource.String.library_name;
 		}
 		
 		public partial class Animation

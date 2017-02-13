@@ -248,22 +248,14 @@ namespace EcoBand {
         public async Task<bool> StopMeasuringHeartRate() {
             IService service;
             ICharacteristic controlPoint;
-            // UserProfile userProfile;
             string address;
-            // bool wroteUserInfo;
             bool stoppedMeasuring;
 
             try {
-                // if (_mainService == null) _mainService = await Device.GetServiceAsync(UUID_SV_MAIN);
-
                 service = await Device.GetServiceAsync(UUID_SV_HEART_RATE);
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
                 controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
-                // userProfile = new UserProfile(10000000, UserProfile.GENDER_FEMALE, 26, 154, 49, "Rita", 0); // TODO: Use user's data
-                // wroteUserInfo = await WriteToCharacteristic(userProfile.toByteArray(address), UUID_CH_USER_INFO, _mainService);
                 stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
-
-                // return wroteUserInfo && stoppedMeasuring;
                 return stoppedMeasuring;
             }
             catch (Exception ex) {

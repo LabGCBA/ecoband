@@ -17,8 +17,6 @@ using Android.Views;
 using Android.Graphics.Drawables;
 using Android.Graphics;
 
-using Auth0.SDK;
-
 using AndroidHUD;
 using Acr.UserDialogs;
 
@@ -54,7 +52,7 @@ namespace EcoBand {
 
         private static readonly Plugin.BLE.Abstractions.Contracts.IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
-        private static Band _device;
+        private static Band _band;
         private static LocationManager _locationManager;
         private static Android.Support.V7.Widget.Toolbar _toolbar;
         private static IMenuItem _heartRateIcon;
@@ -91,7 +89,7 @@ namespace EcoBand {
         private async void OnScanTimeoutElapsed(object sender, EventArgs e) {
             await StopScanning();
 
-            if (_device == null) await CheckConnection();
+            if (_band == null) await CheckConnection();
 
             Log.Debug("MAIN", "##### Scan timeout elapsed");
             Log.Debug("MAIN", "##### No devices found");
@@ -120,7 +118,7 @@ namespace EcoBand {
         }
 
         private async void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
-            _device = null;
+            _band = null;
 
             ((AnimationDrawable) _heartRateIcon.Icon).Stop();
 
@@ -135,7 +133,7 @@ namespace EcoBand {
         }
 
         private async void OnDeviceConnectionLost(object sender, DeviceErrorEventArgs e) {
-            _device = null;
+            _band = null;
 
             ((AnimationDrawable) _heartRateIcon.Icon).Stop();
 
@@ -364,7 +362,7 @@ namespace EcoBand {
                     if (IsKnownDevice(device)) {
                         Log.Debug("MAIN", $"##### Paired device: {device.Name}");
 
-                        if (_device == null) _device = new Band(device);
+                        if (_band == null) _band = new Band(device);
 
                         return true;
                     }
@@ -405,13 +403,13 @@ namespace EcoBand {
             if (!_isConnecting) {
                 _isConnecting = true;
 
-                nativeDevice = (BluetoothDevice) _device.Device.NativeDevice;
+                nativeDevice = (BluetoothDevice) _band.Device.NativeDevice;
 
                 using (CancellationTokenSource tokenSource = new CancellationTokenSource()) {
                     try {
                         Log.Debug("MAIN", "##### Trying to connect...");
 
-                        await _adapter.ConnectToDeviceAsync(_device.Device, true, tokenSource.Token).TimeoutAfter(TimeSpan.FromSeconds(10), tokenSource);
+                        await _adapter.ConnectToDeviceAsync(_band.Device, true, tokenSource.Token).TimeoutAfter(TimeSpan.FromSeconds(10), tokenSource);
 
                         if (nativeDevice.BondState == Bond.None) {
                             Log.Debug("MAIN", "##### Bonding...");
@@ -442,10 +440,10 @@ namespace EcoBand {
                 });
                 */
 
-                await _adapter.DisconnectDeviceAsync(_device.Device);
+                await _adapter.DisconnectDeviceAsync(_band.Device);
             }
             catch (Exception ex) {
-                _userDialogs.Alert(ex.Message, $"Error al desconectarse de {_device.Device.Name}");
+                _userDialogs.Alert(ex.Message, $"Error al desconectarse de {_band.Device.Name}");
 
                 return;
             }
@@ -492,8 +490,8 @@ namespace EcoBand {
         }
 
         private async Task SetUpDevice(IDevice device) { 
-            if (_device == null) {
-                _device = new Band(device);
+            if (_band == null) {
+                _band = new Band(device);
 
                 try {
                     await StopScanning();
@@ -542,8 +540,8 @@ namespace EcoBand {
         }
 
         private void SetDeviceEventHandlers() {
-            _device.Steps += OnStepsChange;
-            _device.HeartRate += OnHeartRateChange;
+            _band.Steps += OnStepsChange;
+            _band.HeartRate += OnHeartRateChange;
         }
 
         private void StartMeasuringLocation() {
@@ -564,8 +562,8 @@ namespace EcoBand {
             bool isMeasuringSteps;
 
             try {
-                isMeasuringHeartRate = await _device.StartMeasuringHeartRate();
-                isMeasuringSteps = await _device.StartMeasuringSteps();
+                isMeasuringHeartRate = await _band.StartMeasuringHeartRate();
+                isMeasuringSteps = await _band.StartMeasuringSteps();
 
                 if (!isMeasuringHeartRate) {
                     _heartRateErrors++;
