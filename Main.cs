@@ -13,6 +13,11 @@ using Android.OS;
 using Android.Content.PM;
 using Android.Bluetooth;
 using Android.Support.V7.App;
+using Android.Views;
+using Android.Graphics.Drawables;
+using Android.Graphics;
+
+using Auth0.SDK;
 
 using AndroidHUD;
 using Acr.UserDialogs;
@@ -21,9 +26,7 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
-using Android.Views;
-using Android.Graphics.Drawables;
-using Android.Graphics;
+
 
 namespace EcoBand {
     [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
@@ -53,6 +56,8 @@ namespace EcoBand {
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _device;
         private static LocationManager _locationManager;
+        private static Auth0Client _auth0;
+        private static Auth0User _user;
         private static Android.Support.V7.Widget.Toolbar _toolbar;
         private static IMenuItem _heartRateIcon;
         private static TextView _heartRateLabel;
@@ -591,6 +596,8 @@ namespace EcoBand {
         }
 
         private void ShowSpinner(string message) {
+            AndHUD.Shared.Dismiss(this);
+
             RunOnUiThread(() => {
                 _userDialogs.ShowLoading(message);
             });
