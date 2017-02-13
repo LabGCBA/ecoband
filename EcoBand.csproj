@@ -106,9 +106,6 @@
     <Reference Include="JWT">
       <HintPath>packages\Firebase.Xamarin.0.3.6\lib\JWT.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Firebase.Xamarin.0.3.6\lib\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.Reactive.Core">
       <HintPath>packages\Firebase.Xamarin.0.3.6\lib\System.Reactive.Core.dll</HintPath>
     </Reference>
@@ -120,6 +117,15 @@
     </Reference>
     <Reference Include="System.Reactive.PlatformServices">
       <HintPath>packages\Firebase.Xamarin.0.3.6\lib\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Auth0Client.Android">
+      <HintPath>Components\Auth0Client-0.5.0\lib\android\Auth0Client.Android.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Components\Auth0Client-0.5.0\lib\android\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Auth.Android">
+      <HintPath>Components\Auth0Client-0.5.0\lib\android\Xamarin.Auth.Android.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +183,10 @@
   <ItemGroup>
     <XamarinComponentReference Include="googleplayservices-location">
       <Version>29.0.0.2</Version>
+      <Visible>False</Visible>
+    </XamarinComponentReference>
+    <XamarinComponentReference Include="Auth0Client">
+      <Version>0.5.0</Version>
       <Visible>False</Visible>
     </XamarinComponentReference>
   </ItemGroup>
