@@ -237,7 +237,7 @@ namespace EcoBand {
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
 
-                LoadHeartAnimation(Resource.Drawable.heart_animation_00);
+                LoadHeartAnimation(Resource.Drawable.heart_animation);
                 HideSpinner();
             }
 
@@ -614,7 +614,9 @@ namespace EcoBand {
             Drawable currentFrame;
             Drawable checkFrame;
             AnimationDrawable animation;
-            int absoluteIndex;
+            AnimationDrawable newAnimation;
+
+            newAnimation = new AnimationDrawable();
 
             RunOnUiThread(() => {
                 animation = (AnimationDrawable) target.Icon;
@@ -625,14 +627,20 @@ namespace EcoBand {
                 for (int i = 0; i < animation.NumberOfFrames; i++) {
                     checkFrame = animation.GetFrame(i);
 
-                    if (checkFrame == currentFrame) {
-                        absoluteIndex = Math.Abs(i - _currentHeartAnimationIndex);
+                    if (checkFrame == currentFrame) { 
+                        for (int k = i; k < animation.NumberOfFrames; k++) {
+                            newAnimation.AddFrame(animation.GetFrame(k), 100);
+                        }
 
-                        target.SetIcon(list[absoluteIndex]);
+                        for (int k = 0; k < i; k++) {
+                            newAnimation.AddFrame(animation.GetFrame(k), 100);
+                        }
 
-                        _currentHeartAnimationIndex = i;
+                        break;
                     }
                 }
+
+                target.SetIcon(newAnimation);
             });
         }
 
@@ -675,15 +683,7 @@ namespace EcoBand {
             FindViewById<TextView>(Resource.Id.lblLongitudeTitle).Typeface = rubikRegular;
             FindViewById<TextView>(Resource.Id.lblLongitudeValue).Typeface = rubikRegular;
 
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_00));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_01));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_02));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_03));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_04));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_05));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_06));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_07));
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation_08));
+            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation));
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {

@@ -161,15 +161,7 @@
     <AndroidResource Include="Resources\drawable\heart_animation_frame_06.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_frame_07.xml" />
     <AndroidResource Include="Resources\drawable\heart_animation_frame_08.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_00.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_01.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_02.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_03.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_04.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_05.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_06.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_07.xml" />
-    <AndroidResource Include="Resources\drawable\heart_animation_08.xml" />
+    <AndroidResource Include="Resources\drawable\heart_animation.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ItemGroup>
