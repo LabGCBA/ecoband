@@ -56,8 +56,6 @@ namespace EcoBand {
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _device;
         private static LocationManager _locationManager;
-        private static Auth0Client _auth0;
-        private static Auth0User _user;
         private static Android.Support.V7.Widget.Toolbar _toolbar;
         private static IMenuItem _heartRateIcon;
         private static TextView _heartRateLabel;
@@ -65,7 +63,6 @@ namespace EcoBand {
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
         private static List<AnimationDrawable> _heartAnimations;
-        private static int _currentHeartAnimationIndex;
         private static IUserDialogs _userDialogs;
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
