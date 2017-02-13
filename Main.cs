@@ -20,7 +20,6 @@ using Android.Graphics;
 using AndroidHUD;
 using Acr.UserDialogs;
 
-using Firebase.Xamarin.Auth;
 using Firebase.Xamarin.Token;
 using Firebase.Xamarin.Database;
 
@@ -35,10 +34,9 @@ namespace EcoBand {
 
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
-            _firebase = new FirebaseClient("");
-            _firebaseTokenGenerator = new TokenGenerator("");
+            _firebase = new FirebaseClient("https://demo.firebaseio.com/");
+            _firebaseTokenGenerator = new TokenGenerator("demo");
             _beatsBuffer = new Queue<int>(7);
-            _heartAnimations = new List<AnimationDrawable>();
 
             _ble.StateChanged += OnStateChanged;
             _adapter.ScanTimeoutElapsed += OnScanTimeoutElapsed;
@@ -71,7 +69,6 @@ namespace EcoBand {
         private static TextView _stepsLabel;
         private static TextView _latitudeLabel;
         private static TextView _longitudeLabel;
-        private static List<AnimationDrawable> _heartAnimations;
         private static IUserDialogs _userDialogs;
 
         private static Timer _measurementsTimer;
@@ -175,7 +172,7 @@ namespace EcoBand {
 
             Log.Debug("MAIN", "##### Starting new measurement cycle...");
 
-            PauseAnimation(_heartRateIcon, _heartAnimations);
+            PauseAnimation(_heartRateIcon);
 
             try {
                 StartMeasuringActivity().NoAwait();
@@ -490,6 +487,7 @@ namespace EcoBand {
             try {
                 result = await _firebase
                     .Child(((BluetoothDevice) _band.Device.NativeDevice).Address)
+                    // .WithAuth(_firebaseToken)
                     .PostAsync(record);
 
                 if (result.Object.Count > 0) return true;
@@ -580,7 +578,7 @@ namespace EcoBand {
             Dictionary<string, object> payload;
 
             payload = new Dictionary<string, object>() {
-              { "uid", macAddress }
+                { "uid", macAddress}
             };
             _firebaseToken = _firebaseTokenGenerator.CreateToken(payload);
         }
@@ -609,7 +607,7 @@ namespace EcoBand {
                 if (!isMeasuringHeartRate) {
                     _heartRateErrors++;
 
-                    PauseAnimation(_heartRateIcon, _heartAnimations);
+                    PauseAnimation(_heartRateIcon);
                 }
                 else _heartRateErrors = 0;
 
@@ -653,7 +651,7 @@ namespace EcoBand {
             });
         }
 
-        private void PauseAnimation(IMenuItem target, List<AnimationDrawable> list) {
+        private void PauseAnimation(IMenuItem target) {
             Drawable currentFrame;
             Drawable checkFrame;
             AnimationDrawable animation;
@@ -725,8 +723,6 @@ namespace EcoBand {
             FindViewById<TextView>(Resource.Id.lblLatitudeValue).Typeface = rubikRegular;
             FindViewById<TextView>(Resource.Id.lblLongitudeTitle).Typeface = rubikRegular;
             FindViewById<TextView>(Resource.Id.lblLongitudeValue).Typeface = rubikRegular;
-
-            _heartAnimations.Add((AnimationDrawable) GetDrawable(Resource.Drawable.heart_animation));
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data) {
