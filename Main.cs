@@ -20,6 +20,10 @@ using Android.Graphics;
 using AndroidHUD;
 using Acr.UserDialogs;
 
+using Firebase.Xamarin.Auth;
+using Firebase.Xamarin.Token;
+using Firebase.Xamarin.Database;
+
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
@@ -31,6 +35,8 @@ namespace EcoBand {
 
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
+            _firebase = new FirebaseClient("");
+            _firebaseTokenGenerator = new TokenGenerator("");
             _beatsBuffer = new Queue<int>(7);
             _heartAnimations = new List<AnimationDrawable>();
 
@@ -54,6 +60,11 @@ namespace EcoBand {
         private static readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
         private static Band _band;
         private static LocationManager _locationManager;
+
+        private static FirebaseClient _firebase;
+        private static TokenGenerator _firebaseTokenGenerator;
+        private static string _firebaseToken;
+
         private static Android.Support.V7.Widget.Toolbar _toolbar;
         private static IMenuItem _heartRateIcon;
         private static TextView _heartRateLabel;
@@ -62,8 +73,11 @@ namespace EcoBand {
         private static TextView _longitudeLabel;
         private static List<AnimationDrawable> _heartAnimations;
         private static IUserDialogs _userDialogs;
+
         private static Timer _measurementsTimer;
         private static Timer _stepsTimer;
+
+        // State
         private static bool _isConnecting;
         private static int _heartRateErrors;
         private static int _stepsErrors;
@@ -115,6 +129,8 @@ namespace EcoBand {
 
         private void OnDeviceConnected(object sender, DeviceEventArgs args) {
             Log.Debug("MAIN", $"##### Connected to device {args.Device.Name}");
+
+            SetFirebaseToken(((BluetoothDevice) _band.Device.NativeDevice).Address);
         }
 
         private async void OnDeviceDisconnected(object sender, DeviceEventArgs e) {
@@ -175,6 +191,7 @@ namespace EcoBand {
             DateTime now;
             TimeSpan interval;
             double steps;
+            double roundedSteps;
 
             state = (TimerState) timerState;
 
@@ -191,9 +208,12 @@ namespace EcoBand {
                 if (_lastStepTimestamp != null) {
                     interval = now - ((DateTime) _lastStepTimestamp);
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
+                    roundedSteps = Math.Round(steps, MidpointRounding.AwayFromZero);
+
+                    Save((int) roundedSteps, "stepsPerMinute").NoAwait();
 
                     RunOnUiThread(() => {
-                        _stepsLabel.Text = Math.Round(steps, MidpointRounding.AwayFromZero).ToString();
+                        _stepsLabel.Text =roundedSteps.ToString();
                     });
 
                     _lastStepTimestamp = now;
@@ -233,6 +253,7 @@ namespace EcoBand {
             }
 
             _beatsBuffer.Enqueue(e.Measure);
+            Save(e.Measure, "beatsPerMinute").NoAwait();
 
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
@@ -434,18 +455,10 @@ namespace EcoBand {
 
         private async Task Disconnect() {
             try {
-                /*
-                RunOnUiThread(() => {
-                    _userDialogs.ShowLoading($"Desconectando de {band.Device.Name}...");
-                });
-                */
-
                 await _adapter.DisconnectDeviceAsync(_band.Device);
             }
             catch (Exception ex) {
                 _userDialogs.Alert(ex.Message, $"Error al desconectarse de {_band.Device.Name}");
-
-                return;
             }
         }
 
@@ -461,6 +474,33 @@ namespace EcoBand {
             }
             catch (Exception ex) {
                 Log.Error("MAIN", $"Error refreshing connection: {ex.Message}");
+            }
+        }
+
+        private async Task<bool> Save(int measurement, string type) {
+            Dictionary<string, object> record;
+            FirebaseObject<Dictionary<string, object>> result;
+
+            record = new Dictionary<string, object>() {
+                { "type", type },
+                { "value", measurement },
+                { "timestamp", DateTime.Now }
+            };
+
+            try {
+                result = await _firebase
+                    .Child(((BluetoothDevice) _band.Device.NativeDevice).Address)
+                    .PostAsync(record);
+
+                if (result.Object.Count > 0) return true;
+
+                return false;
+
+            }
+            catch (Exception ex) {
+                _userDialogs.Alert(ex.Message, $"Error al guardar un dato de tipo {type}");
+
+                return false;
             }
         }
 
@@ -534,6 +574,15 @@ namespace EcoBand {
         private void SetDeviceEventHandlers() {
             _band.Steps += OnStepsChange;
             _band.HeartRate += OnHeartRateChange;
+        }
+
+        private void SetFirebaseToken(string macAddress) { 
+            Dictionary<string, object> payload;
+
+            payload = new Dictionary<string, object>() {
+              { "uid", macAddress }
+            };
+            _firebaseToken = _firebaseTokenGenerator.CreateToken(payload);
         }
 
         private void StartMeasuringLocation() {
@@ -637,8 +686,6 @@ namespace EcoBand {
                 target.SetIcon(newAnimation);
             });
         }
-
-        Co
 
 
         /**************************************************************************
