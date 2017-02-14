@@ -27,7 +27,7 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions.EventArgs;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.Extensions;
-
+using System.Net;
 
 namespace EcoBand {
     [Activity(Label = "EcoBand", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait)]
@@ -476,6 +476,7 @@ namespace EcoBand {
 
         private async Task<bool> Save(int measurement, string type) {
             Dictionary<string, object> record;
+            Dictionary<string, object> subChild;
             FirebaseObject<Dictionary<string, object>> result;
 
             record = new Dictionary<string, object>() {
@@ -483,20 +484,29 @@ namespace EcoBand {
                 { "value", measurement },
                 { "timestamp", DateTime.Now }
             };
+            subChild = new Dictionary<string, object>() {
+                { "activity", record }
+            };
 
             try {
                 result = await _firebase
                     .Child(((BluetoothDevice) _band.Device.NativeDevice).Address)
                     // .WithAuth(_firebaseToken)
-                    .PostAsync(record);
+                    .PostAsync(subChild);
 
                 if (result.Object.Count > 0) return true;
 
                 return false;
 
             }
+            catch (WebException ex) {
+                // if (ex.Status == WebExceptionStatus.NameResolutionFailure) return false;
+                Log.Error("MAIN", $"Error saving data: {ex.Message}");
+
+                return false;
+            }
             catch (Exception ex) {
-                _userDialogs.Alert(ex.Message, $"Error al guardar un dato de tipo {type}");
+                Log.Error("MAIN", $"Error saving data: {ex.Message}");
 
                 return false;
             }
