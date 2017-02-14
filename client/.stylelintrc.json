@@ -1,6 +1,6 @@
 {
-  "extends": "stylelint-config-kyt",
+    "extends": "stylelint-config-kyt",
 
-  "rules": {
-  }
+    "rules": {
+    }
 }

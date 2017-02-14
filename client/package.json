@@ -8,6 +8,7 @@
   "dependencies": {
     "babel-preset-kyt-react": "0.1.1",
     "echarts-for-react": "^1.1.6",
+    "firebase": "^3.6.9",
     "html-webpack-plugin": "^2.22.0",
     "kyt": "0.4.0",
     "react": "^15.3.0",
