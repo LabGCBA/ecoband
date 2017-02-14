@@ -207,7 +207,7 @@ namespace EcoBand {
                     steps = _stepsBuffer * (60000 / interval.TotalMilliseconds);
                     roundedSteps = Math.Round(steps, MidpointRounding.AwayFromZero);
 
-                    Save((int) roundedSteps, "stepsPerMinute").NoAwait();
+                    SaveActivity((int) roundedSteps, "stepsPerMinute").NoAwait();
 
                     RunOnUiThread(() => {
                         _stepsLabel.Text =roundedSteps.ToString();
@@ -250,7 +250,7 @@ namespace EcoBand {
             }
 
             _beatsBuffer.Enqueue(e.Measure);
-            Save(e.Measure, "beatsPerMinute").NoAwait();
+            SaveActivity(e.Measure, "beatsPerMinute").NoAwait();
 
             if (!_gotFirstMeasurement) {
                 _gotFirstMeasurement = true;
@@ -474,9 +474,8 @@ namespace EcoBand {
             }
         }
 
-        private async Task<bool> Save(int measurement, string type) {
+        private async Task<bool> SaveActivity(int measurement, string type) {
             Dictionary<string, object> record;
-            Dictionary<string, object> subChild;
             FirebaseObject<Dictionary<string, object>> result;
 
             record = new Dictionary<string, object>() {
@@ -484,15 +483,12 @@ namespace EcoBand {
                 { "value", measurement },
                 { "timestamp", DateTime.Now }
             };
-            subChild = new Dictionary<string, object>() {
-                { "activity", record }
-            };
 
             try {
                 result = await _firebase
-                    .Child(((BluetoothDevice) _band.Device.NativeDevice).Address)
+                    .Child(((BluetoothDevice) _band.Device.NativeDevice).Address + "/activity")
                     // .WithAuth(_firebaseToken)
-                    .PostAsync(subChild);
+                    .PostAsync(record);
 
                 if (result.Object.Count > 0) return true;
 
