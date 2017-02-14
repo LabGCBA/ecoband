@@ -11,6 +11,7 @@ export default class Datasource {
         this._database = Firebase.database();
         this.ref = this._database.ref(`${this._device}/activity`);
         this._beatsPerMinute = [];
+        this._stepsPerMinute = [];
 
         this.ref.on('child_added', this.onItemAdded.bind(this));
     }
@@ -19,16 +20,15 @@ export default class Datasource {
         return this._beatsPerMinute;
     }
 
-    onItemAdded(item) {
-        const data = item.val();
-
-        this._beatsPerMinute.push({
-            key: item.key,
+    onItemAdded(record) {
+        const data = record.val();
+        const item = {
+            key: record.key,
             timestamp: data.timestamp,
-            type: data.type,
             value: data.value
-        });
+        };
 
-        console.log(this._beatsPerMinute);
+        if (data.type === 'beatsPerMinute') this._beatsPerMinute.push(item);
+        else if (data.type === 'stepsPerMinute') this._stepsPerMinute.push(item);
     }
 }
