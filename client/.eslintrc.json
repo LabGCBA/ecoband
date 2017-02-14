@@ -13,7 +13,11 @@
         "indent": ["error", 4],
         "comma-dangle": ["error", "never"],
         "class-methods-use-this": [0],
-        "no-underscode-dangle": ["error", { "allowAfterThis": true }],
-        "constructor-super": "error"
+        "constructor-super": "error",
+        "no-console": [0],
+        "no-unused-vars": [0],
+        "no-underscode-dangle": [0],
+        "brace-style": [1, "stroustrup"],
+        "import/imports-first": [0]
     }
 }
