@@ -52,7 +52,10 @@ const baseChartOptions = {
     toolbox: {
         show: true,
         feature: {
-            saveAsImage: { show: true }
+            saveAsImage: {
+                show: true,
+                title: ' '
+            }
         },
         iconStyle: {
             normal: {
