@@ -73,12 +73,8 @@ export default class Home extends PureComponent {
             this.setState({ lastStep: newItem[0] });
         }
 
-
         newArray.push(newItem);
         this.setState({ [data.type]: newArray });
-    }
-
-    onChartReadyCallback(chart) {
     }
 
     getBeatsChartOptions() {
@@ -150,11 +146,9 @@ export default class Home extends PureComponent {
           <section>
             <ReactEcharts
               option={this.getBeatsChartOptions()}
-              onChartReady={this.onChartReadyCallback.bind(this)}
             />
             <ReactEcharts
               option={this.getStepsChartOptions()}
-              onChartReady={this.onChartReadyCallback.bind(this)}
             />
           </section>
         );
