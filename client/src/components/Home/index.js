@@ -120,7 +120,7 @@ export default class Home extends PureComponent {
                     min: this.state.stepsPerMinute[0] ? this.state.stepsPerMinute[0][0] : new Date(),
                     max: this.state.lastStep,
                     splitNumber: 5,
-                    minInterval: 10
+                    minInterval: 5
                 }
             ],
             yAxis: [
