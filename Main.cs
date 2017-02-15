@@ -435,6 +435,8 @@ namespace EcoBand {
                             nativeDevice.CreateBond();
                         }
                         else Log.Debug("MAIN", "##### Already bonded");
+
+                        _isConnecting = false;
                     }
                     catch (Exception ex) {
                         Log.Error("MAIN", $"Connection attempt failed: {ex.Message}");
@@ -443,8 +445,6 @@ namespace EcoBand {
 
                         await Connect();
                     }
-
-                    _isConnecting = false;
                 }
             }
             else Log.Debug("MAIN", "##### Connection underway, skipping attempt");
@@ -477,6 +477,8 @@ namespace EcoBand {
         private async Task<bool> SaveActivity(int measurement, string type) {
             Dictionary<string, object> record;
             FirebaseObject<Dictionary<string, object>> result;
+
+            if (measurement <= 0) return false;
 
             record = new Dictionary<string, object>() {
                 { "type", type },
