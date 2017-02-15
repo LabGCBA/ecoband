@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 
 import Firebase from 'firebase';
 import ReactEcharts from 'echarts-for-react';
+import differenceInMilliseconds from 'date-fns/difference_in_milliseconds';
 import differenceInSeconds from 'date-fns/difference_in_seconds';
 import styles from './styles.scss';
 
@@ -33,44 +34,28 @@ export default class Home extends PureComponent {
         const data = record.val();
         const item = data.value;
         const timestamp = new Date(data.timestamp);
-        const newItem = [timestamp, item];
         const lastItem = this.state.beatsPerMinute[this.state.beatsPerMinute.length - 1];
+        const now = Date.now();
+        let newItem = [timestamp, item];
         let newArray;
 
-        if (data.type === 'beatsPerMinute') {
-            if (this.state.beatsPerMinute.length > 0) {
-                if (!this.isValidData(newItem, lastItem)) return;
+        // Is old?
+        if (differenceInSeconds(now, newItem[0]) > 30) newItem = [null, null];
+        // Is an outlier? (is the new item older that the last one?)
+        else if (lastItem && differenceInMilliseconds(lastItem[0], newItem[0]) > 0) return;
 
-                newArray = [...this.state.beatsPerMinute];
-                if (newArray.length >= this._heartBeatsToShow) newArray.shift();
-            }
-            else newArray = [];
-
-            newArray.push(newItem);
-            this.setState({ beatsPerMinute: newArray });
+        if (this.state[data.type].length > 0) {
+            newArray = [...this.state[data.type]];
+            if (data.type === 'beatsPerMinute' && (newArray.length >= this._heartBeatsToShow)) newArray.shift();
+            else if (data.type === 'stepsPerMinute' && newArray.length >= this._stepsToShow) newArray.shift();
         }
-        else if (data.type === 'stepsPerMinute') {
-            if (this.state.stepsPerMinute.length > 0) {
-                if (!this.isValidData(newItem, lastItem)) return;
+        else newArray = [];
 
-                newArray = [...this.state.stepsPerMinute];
-                if (newArray.length >= this._stepsToShow) newArray.shift();
-            }
-            else newArray = [];
-
-            newArray.push(newItem);
-            this.setState({ stepsPerMinute: newArray });
-        }
+        newArray.push(newItem);
+        this.setState({ [data.type]: newArray });
     }
 
     onChartReadyCallback(chart) {
-    }
-
-    isValidData(newItem, lastItem) {
-        const isOldData = differenceInSeconds(Date.now(), newItem[0]) > 30;
-        const isOutlier = differenceInSeconds(Date.now(), lastItem[0]) < 0;
-
-        return !(isOldData || isOutlier);
     }
 
     getBeatsChartOptions() {
@@ -88,15 +73,20 @@ export default class Home extends PureComponent {
                     saveAsImage: { show: true }
                 }
             },
+            grid: {
+                show: false
+            },
             xAxis: [
                 {
                     type: 'time',
-                    splitNumber: 15
+                    splitNumber: 10,
+                    minInterval: 3
                 }
             ],
             yAxis: [
                 {
-                    type: 'value'
+                    type: 'value',
+                    max: 150
                 }
             ],
             series: [
@@ -105,7 +95,8 @@ export default class Home extends PureComponent {
                     type: 'line',
                     data: this.state.beatsPerMinute
                 }
-            ]
+            ],
+            animation: false
         };
     }
 
