@@ -189,7 +189,7 @@ class Home extends PureComponent {
                 fontWeight: 'bold'
             },
             toolbar: {
-                boxShadow: '0 14px 28px rgba(0,0,0,0.30), 0 10px 10px rgba(0,0,0,0.30);',
+                boxShadow: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.22)',
                 backgroundColor: '#27232F'
             },
             toolbarGroup: {
