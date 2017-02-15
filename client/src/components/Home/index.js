@@ -18,10 +18,36 @@ const textStyle = {
     fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
 };
 
+const lineStyle = {
+    normal: {
+        color: '#FF5D9E'
+    },
+    emphasis: {
+        color: '#F0EAFF'
+    }
+};
+
+const itemStyle = {
+    normal: {
+        borderColor: '#FF5D9E'
+    },
+    emphasis: {
+        borderColor: '#F0EAFF'
+    }
+};
+
 const baseChartOptions = {
     animation: false,
+    color: [
+        '#FF5D9E', '#FF5D9E', '#FF5D9E', '#d48265', '#91c7ae',
+        '#749f83', '#ca8622', '#bda29a', '#6e7074', '#546570',
+        '#c4ccd3'
+    ],
     tooltip: {
-        trigger: 'axis'
+        trigger: 'axis',
+        axisPointer: {
+            lineStyle: lineStyle.emphasis
+        }
     },
     toolbox: {
         show: true,
@@ -128,7 +154,9 @@ class Home extends PureComponent {
                 {
                     name: 'Pulsaciones',
                     type: 'line',
-                    data: this.state.beatsPerMinute
+                    data: this.state.beatsPerMinute,
+                    itemStyle,
+                    lineStyle
                 }
             ]
         };
@@ -167,7 +195,9 @@ class Home extends PureComponent {
                 {
                     name: 'Pasos',
                     type: 'line',
-                    data: this.state.stepsPerMinute
+                    data: this.state.stepsPerMinute,
+                    itemStyle,
+                    lineStyle
                 }
             ]
         };
