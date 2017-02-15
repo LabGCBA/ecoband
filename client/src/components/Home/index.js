@@ -1,11 +1,22 @@
 import React, { PureComponent } from 'react';
+import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import Firebase from 'firebase';
+import FontIcon from 'material-ui/FontIcon';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
+import Toggle from 'material-ui/Toggle';
 import differenceInMilliseconds from 'date-fns/difference_in_milliseconds';
 import differenceInSeconds from 'date-fns/difference_in_seconds';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import styles from './styles.scss';
 import substractSeconds from 'date-fns/sub_seconds';
+
+const textStyle = {
+    color: '#F0EAFF',
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
+};
 
 const baseChartOptions = {
     animation: false,
@@ -16,14 +27,23 @@ const baseChartOptions = {
         show: true,
         feature: {
             saveAsImage: { show: true }
+        },
+        iconStyle: {
+            normal: {
+                borderColor: '#F0EAFF'
+            },
+            emphasis: {
+                borderColor: '#FF5D9E'
+            }
         }
     },
     grid: {
         show: false
-    }
+    },
+    textStyle
 };
 
-export default class Home extends PureComponent {
+class Home extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -80,7 +100,8 @@ export default class Home extends PureComponent {
     getBeatsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pulsaciones por minuto'
+                text: 'Pulsaciones por minuto',
+                textStyle
             },
             xAxis: [
                 {
@@ -88,13 +109,19 @@ export default class Home extends PureComponent {
                     min: this.state.beatsPerMinute[0] ? this.state.beatsPerMinute[0][0] : new Date(),
                     max: this.state.lastBeat,
                     splitNumber: 5,
-                    minInterval: 5
+                    minInterval: 5,
+                    axisLine: {
+                        lineStyle: textStyle
+                    }
                 }
             ],
             yAxis: [
                 {
                     type: 'value',
-                    max: 200
+                    max: 200,
+                    axisLine: {
+                        lineStyle: textStyle
+                    }
                 }
             ],
             series: [
@@ -112,7 +139,8 @@ export default class Home extends PureComponent {
     getStepsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pasos por minuto'
+                text: 'Pasos por minuto',
+                textStyle
             },
             xAxis: [
                 {
@@ -120,13 +148,19 @@ export default class Home extends PureComponent {
                     min: this.state.stepsPerMinute[0] ? this.state.stepsPerMinute[0][0] : new Date(),
                     max: this.state.lastStep,
                     splitNumber: 5,
-                    minInterval: 5
+                    minInterval: 5,
+                    axisLine: {
+                        lineStyle: textStyle
+                    }
                 }
             ],
             yAxis: [
                 {
                     type: 'value',
-                    max: 200
+                    max: 200,
+                    axisLine: {
+                        lineStyle: textStyle
+                    }
                 }
             ],
             series: [
@@ -141,16 +175,61 @@ export default class Home extends PureComponent {
         return Object.assign({}, baseChartOptions, customOptions);
     }
 
+    getChildContext() {
+        return {
+            muiTheme: getMuiTheme()
+        };
+    }
+
     render() {
+        const style = {
+            main: {
+                width: '75%',
+                fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif',
+                fontWeight: 'bold'
+            },
+            toolbar: {
+                boxShadow: '0 14px 28px rgba(0,0,0,0.30), 0 10px 10px rgba(0,0,0,0.30);',
+                backgroundColor: '#27232F'
+            },
+            toolbarGroup: {
+                width: '100%',
+                display: 'block'
+            },
+            toolbarTitle: {
+                color: '#F0EAFF'
+            },
+            icons: {
+                float: 'right',
+                color: '#F0EAFF'
+            },
+            content: {
+                marginTop: '3rem'
+            }
+        };
+
         return (
-          <section>
-            <ReactEcharts
-              option={this.getBeatsChartOptions()}
-            />
-            <ReactEcharts
-              option={this.getStepsChartOptions()}
-            />
-          </section>
+          <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
+            <section id="main" style={style.main}>
+              <Toolbar style={style.toolbar}>
+                <ToolbarGroup style={style.toolbarGroup}>
+                  <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
+                  <FontIcon className="material-icons" style={style.icons}>date_range</FontIcon>
+                  <FontIcon className="material-icons" style={style.icons}>update</FontIcon>
+                </ToolbarGroup>
+              </Toolbar>
+              <div style={style.content}>
+                <ReactEcharts option={this.getBeatsChartOptions()} />
+                <ReactEcharts option={this.getStepsChartOptions()} />
+              </div>
+            </section>
+          </MuiThemeProvider>
         );
     }
 }
+
+Home.childContextTypes = {
+    muiTheme: React.PropTypes.object
+};
+
+export default Home;
