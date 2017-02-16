@@ -136,17 +136,11 @@ class Home extends Component {
     }
 
     onItemAdded(record) {
-        console.log(this.state);
         const data = record.val();
         const item = data.value;
         const timestamp = new Date(data.timestamp);
         const newArray = [...this.state[data.type].list];
         const newItem = [timestamp, item];
-
-        console.info('This is NOT real time');
-        console.info('newItem[0]: ' + newItem[0]);
-        console.info('newItem[1]: ' + newItem[0]);
-        console.info('newArray length: ' + newArray.length);
 
         this.setChartData(data, newItem, newArray);
     }
@@ -156,13 +150,12 @@ class Home extends Component {
         const item = data.value;
         const timestamp = new Date(data.timestamp);
         const now = Date.now();
-        console.log(this.state);
-        const currentItems = this.state.beatsPerMinute.list.length;
-        const lastItem = this.state.beatsPerMinute.list[currentItems - 1];
-        const newArray = [...this.state.beatsPerMinute.list];
+        const newArray = [...this.state[data.type].list];
+        const currentItems = this.state[data.type].list.length;
+        const lastItem = this.state[data.type].list[currentItems - 1];
         let newItem = [timestamp, item];
 
-        console.info('This is real time');
+        console.info(item);
 
         // Is old?
         if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
@@ -221,9 +214,6 @@ class Home extends Component {
             xAxis: [
                 {
                     type: 'time',
-                    min: this.state.beatsPerMinute.list && this.state.beatsPerMinute.list[0] ?
-                        this.state.beatsPerMinute.list[0][0] : new Date(),
-                    max: this.state.beatsPerMinute.last,
                     splitNumber: 5,
                     minInterval: 5,
                     axisLine: {
@@ -258,9 +248,6 @@ class Home extends Component {
             xAxis: [
                 {
                     type: 'time',
-                    min: this.state.stepsPerMinute.list && this.state.stepsPerMinute.list[0] ?
-                        this.state.stepsPerMinute.list[0][0] : new Date(),
-                    max: this.state.stepsPerMinute.last,
                     splitNumber: 5,
                     minInterval: 5,
                     axisLine: {
