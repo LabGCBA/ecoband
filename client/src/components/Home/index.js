@@ -32,12 +32,16 @@ const lineStyle = {
 
 const itemStyle = {
     normal: {
+        color: '#FF5D9E',
         borderColor: '#FF5D9E'
     },
     emphasis: {
+        color: '#F0EAFF',
         borderColor: '#F0EAFF'
     }
 };
+
+const areaStyle = itemStyle;
 
 const baseChartOptions = {
     animation: false,
@@ -221,7 +225,8 @@ class Home extends Component {
                     type: 'line',
                     data: this.state.beatsPerMinute.list,
                     itemStyle,
-                    lineStyle
+                    lineStyle,
+                    areaStyle
                 }
             ]
         };
@@ -254,7 +259,8 @@ class Home extends Component {
                     type: 'line',
                     data: this.state.stepsPerMinute.list,
                     itemStyle,
-                    lineStyle
+                    lineStyle,
+                    areaStyle
                 }
             ]
         };
