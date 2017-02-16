@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
@@ -84,7 +84,7 @@ const baseChartOptions = {
     textStyle
 };
 
-class Home extends PureComponent {
+class Home extends Component {
     constructor(props) {
         injectTapEventPlugin();
         super(props);
@@ -96,50 +96,66 @@ class Home extends PureComponent {
 
         this._device = 'C8:0F:10:80:DA:BE';
         this._database = Firebase.database();
-        this._ref = this._database.ref(`${this._device}/activity`);
         this._heartBeatsToShow = 25;
         this._stepsToShow = 25;
         this._primaryColor = '#FF5D9E';
         this._secondaryColor = '#F0EAFF';
         this.state = {
-            beatsPerMinute: [],
-            stepsPerMinute: [],
-            lastBeat: new Date(),
-            lastStep: new Date(),
-            isBeatsChartLoading: true,
-            isStepsChartLoafing: false,
-            realTimeActive: true
+            beatsPerMinute: {
+                list: [],
+                last: new Date(),
+                limit: 25
+            },
+            stepsPerMinute: {
+                list: [],
+                last: new Date(),
+                limit: 25
+            },
+            realTime: true
         };
 
-        this._ref.limitToLast(this._heartBeatsToShow).on('child_added', this.onItemAdded.bind(this));
+        this._database.ref(`${this._device}/activity`)
+            .limitToLast(this._heartBeatsToShow)
+            .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
     onItemAdded(record) {
+        console.log(this.state);
         const data = record.val();
         const item = data.value;
         const timestamp = new Date(data.timestamp);
-        const lastItem = this.state.beatsPerMinute[this.state.beatsPerMinute.length - 1];
+        const newArray = [...this.state[data.type].list];
+        const newItem = [timestamp, item];
+
+        console.info('This is NOT real time');
+        console.info('newItem[0]: ' + newItem[0]);
+        console.info('newItem[1]: ' + newItem[0]);
+        console.info('newArray length: ' + newArray.length);
+
+        this.setChartData(data, newItem, newArray);
+    }
+
+    onItemAddedRealTime(record) {
+        const data = record.val();
+        const item = data.value;
+        const timestamp = new Date(data.timestamp);
         const now = Date.now();
-        const newArray = [...this.state[data.type]];
+        console.log(this.state);
+        const currentItems = this.state.beatsPerMinute.list.length;
+        const lastItem = this.state.beatsPerMinute.list[currentItems - 1];
+        const newArray = [...this.state.beatsPerMinute.list];
         let newItem = [timestamp, item];
+
+        console.info('This is real time');
 
         // Is old?
         if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
         else if (lastItem && differenceInMilliseconds(lastItem[0], newItem[0]) > 0) return;
-        else if (data.type === 'beatsPerMinute') {
-            if ((newArray.length >= this._heartBeatsToShow)) newArray.shift();
 
-            this.setState({ lastBeat: newItem[0] });
-        }
-        else if (data.type === 'stepsPerMinute') {
-            if (newArray.length >= this._stepsToShow) newArray.shift();
+        if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
-            this.setState({ lastStep: newItem[0] });
-        }
-
-        newArray.push(newItem);
-        this.setState({ [data.type]: newArray });
+        this.setChartData(data, newItem, newArray);
     }
 
     onChartReady(echartsInstance, type) {
@@ -153,21 +169,25 @@ class Home extends PureComponent {
             }
         };
 
-        this.onItemAdded(item);
+        this.onItemAddedRealTime(item);
     }
 
     onRealTimeButtonClick() {
+        this.setLimit(this._heartBeatsToShow);
         this.toggleRealTimeState();
+
+        this._database.ref(`${this._device}/activity`)
+            .limitToLast(this._heartBeatsToShow)
+            .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
     onDateRangeButtonClick() {
+        this.setLimit(50);
         this.toggleRealTimeState();
-    }
 
-    toggleRealTimeState() {
-        this.setState({
-            realTimeActive: !this.state.realTimeActive
-        });
+        this._database.ref(`${this._device}/activity`)
+            .limitToLast(50)
+            .on('child_added', this.onItemAdded.bind(this));
     }
 
     singleCurry(func, curriedParam) {
@@ -185,8 +205,9 @@ class Home extends PureComponent {
             xAxis: [
                 {
                     type: 'time',
-                    min: this.state.beatsPerMinute[0] ? this.state.beatsPerMinute[0][0] : new Date(),
-                    max: this.state.lastBeat,
+                    min: this.state.beatsPerMinute.list && this.state.beatsPerMinute.list[0] ?
+                        this.state.beatsPerMinute.list[0][0] : new Date(),
+                    max: this.state.beatsPerMinute.last,
                     splitNumber: 5,
                     minInterval: 5,
                     axisLine: {
@@ -198,7 +219,7 @@ class Home extends PureComponent {
                 {
                     name: 'Pulsaciones',
                     type: 'line',
-                    data: this.state.beatsPerMinute,
+                    data: this.state.beatsPerMinute.list,
                     itemStyle,
                     lineStyle
                 }
@@ -217,8 +238,9 @@ class Home extends PureComponent {
             xAxis: [
                 {
                     type: 'time',
-                    min: this.state.stepsPerMinute[0] ? this.state.stepsPerMinute[0][0] : new Date(),
-                    max: this.state.lastStep,
+                    min: this.state.stepsPerMinute.list && this.state.stepsPerMinute.list[0] ?
+                        this.state.stepsPerMinute.list[0][0] : new Date(),
+                    max: this.state.stepsPerMinute.last,
                     splitNumber: 5,
                     minInterval: 5,
                     axisLine: {
@@ -230,7 +252,7 @@ class Home extends PureComponent {
                 {
                     name: 'Pulsaciones',
                     type: 'line',
-                    data: this.state.stepsPerMinute,
+                    data: this.state.stepsPerMinute.list,
                     itemStyle,
                     lineStyle
                 }
@@ -244,6 +266,36 @@ class Home extends PureComponent {
         return {
             muiTheme: getMuiTheme()
         };
+    }
+
+    setChartData(data, newItem, newArray) {
+        newArray.push(newItem);
+
+        const newState = Object.assign({}, this.state);
+
+        newState[data.type].list = newArray;
+        newState[data.type].last = newItem[0];
+
+        this.setState(newState);
+    }
+
+    setLimit(number) {
+        const newState = Object.assign({}, this.state);
+
+        newState.beatsPerMinute.limit = number;
+        newState.beatsPerMinute.list = [];
+        newState.stepsPerMinute.limit = number;
+        newState.stepsPerMinute.list = [];
+
+        this.setState(newState);
+    }
+
+    toggleRealTimeState() {
+        const newState = Object.assign({}, this.state);
+
+        newState.realTime = !this.state.realTime;
+
+        this.setState(newState);
     }
 
     render() {
@@ -286,7 +338,7 @@ class Home extends PureComponent {
                     onClick={this.onDateRangeButtonClick.bind(this)}
                   >
                     <DateRangeIcon
-                      color={!this.state.realTimeActive ? this._primaryColor : this._secondaryColor}
+                      color={!this.state.realTime ? this._primaryColor : this._secondaryColor}
                     />
                   </IconButton>
                   <IconButton
@@ -296,7 +348,7 @@ class Home extends PureComponent {
                     onClick={this.onRealTimeButtonClick.bind(this)}
                   >
                     <UpdateIcon
-                      color={this.state.realTimeActive ? this._primaryColor : this._secondaryColor}
+                      color={this.state.realTime ? this._primaryColor : this._secondaryColor}
                     />
                   </IconButton>
                 </ToolbarGroup>
