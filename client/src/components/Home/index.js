@@ -41,17 +41,6 @@ const itemStyle = {
     }
 };
 
-const areaStyle = {
-    normal: {
-        color: '#FF5D9E',
-        opacity: 0.5
-    },
-    emphasis: {
-        color: '#F0EAFF',
-        opacity: 0.5
-    }
-};
-
 const baseChartOptions = {
     animation: false,
     color: [
@@ -85,6 +74,23 @@ const baseChartOptions = {
     grid: {
         show: false
     },
+    xAxis: [
+        {
+            type: 'time',
+            axisLine: {
+                lineStyle: textStyle
+            },
+            axisLabel: {
+                show: false
+            },
+            axisTick: {
+                show: false
+            },
+            splitLine: {
+                show: false
+            }
+        }
+    ],
     yAxis: [
         {
             type: 'value',
@@ -219,27 +225,13 @@ class Home extends Component {
                 text: 'Pulsaciones por minuto',
                 textStyle
             },
-            xAxis: [
-                {
-                    type: 'time',
-                    splitNumber: 5,
-                    minInterval: 5,
-                    axisLine: {
-                        lineStyle: textStyle
-                    },
-                    splitLine: {
-                        show: false
-                    }
-                }
-            ],
             series: [
                 {
                     name: 'Pulsaciones',
                     type: 'line',
                     data: this.state.beatsPerMinute.list,
                     itemStyle,
-                    lineStyle,
-                    areaStyle
+                    lineStyle
                 }
             ]
         };
@@ -253,27 +245,13 @@ class Home extends Component {
                 text: 'Pasos por minuto',
                 textStyle
             },
-            xAxis: [
-                {
-                    type: 'time',
-                    splitNumber: 5,
-                    minInterval: 5,
-                    axisLine: {
-                        lineStyle: textStyle
-                    },
-                    splitLine: {
-                        show: false
-                    }
-                }
-            ],
             series: [
                 {
                     name: 'Pulsaciones',
                     type: 'line',
                     data: this.state.stepsPerMinute.list,
                     itemStyle,
-                    lineStyle,
-                    areaStyle
+                    lineStyle
                 }
             ]
         };
