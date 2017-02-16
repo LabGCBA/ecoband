@@ -1,14 +1,17 @@
 import React, { PureComponent } from 'react';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
+import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
 import Firebase from 'firebase';
-import FontIcon from 'material-ui/FontIcon';
+import IconButton from 'material-ui/IconButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
 import Toggle from 'material-ui/Toggle';
+import UpdateIcon from 'material-ui/svg-icons/action/update';
 import differenceInMilliseconds from 'date-fns/difference_in_milliseconds';
 import differenceInSeconds from 'date-fns/difference_in_seconds';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import injectTapEventPlugin from 'react-tap-event-plugin';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import styles from './styles.scss';
 import substractSeconds from 'date-fns/sub_seconds';
@@ -83,6 +86,7 @@ const baseChartOptions = {
 
 class Home extends PureComponent {
     constructor(props) {
+        injectTapEventPlugin();
         super(props);
 
         Firebase.initializeApp({
@@ -243,9 +247,9 @@ class Home extends PureComponent {
             toolbarTitle: {
                 color: '#F0EAFF'
             },
-            icons: {
+            iconButton: {
                 float: 'right',
-                color: '#F0EAFF'
+                marginTop: '0.25rem'
             },
             content: {
                 marginTop: '3rem'
@@ -258,8 +262,12 @@ class Home extends PureComponent {
               <Toolbar style={style.toolbar}>
                 <ToolbarGroup style={style.toolbarGroup}>
                   <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
-                  <FontIcon className="material-icons" style={style.icons}>date_range</FontIcon>
-                  <FontIcon className="material-icons" style={style.icons}>update</FontIcon>
+                  <IconButton style={style.iconButton}>
+                    <DateRangeIcon color={'#F0EAFF'} hoverColor={'#FF5D9E'} />
+                  </IconButton>
+                  <IconButton style={style.iconButton}>
+                    <UpdateIcon color={'#F0EAFF'} hoverColor={'#FF5D9E'} />
+                  </IconButton>
                 </ToolbarGroup>
               </Toolbar>
               <div style={style.content}>
