@@ -99,13 +99,17 @@ class Home extends PureComponent {
         this._ref = this._database.ref(`${this._device}/activity`);
         this._heartBeatsToShow = 25;
         this._stepsToShow = 25;
+        this._primaryColor = '#FF5D9E';
+        this._secondaryColor = '#F0EAFF';
         this.state = {
             beatsPerMinute: [],
             stepsPerMinute: [],
             lastBeat: new Date(),
             lastStep: new Date(),
             isBeatsChartLoading: true,
-            isStepsChartLoafing: false
+            isStepsChartLoafing: false,
+            realTimeActive: true,
+            dateRangeActive: false
         };
 
         this._ref.limitToLast(this._heartBeatsToShow).on('child_added', this.onItemAdded.bind(this));
@@ -151,6 +155,25 @@ class Home extends PureComponent {
         };
 
         this.onItemAdded(item);
+    }
+
+    onRealTimeButtonClick() {
+        if (this.state.realTimeActive) {
+            this.setState({
+                realTimeActive: false,
+                dateRangeActive: true
+            });
+        }
+        else {
+            this.setState({
+                realTimeActive: true,
+                dateRangeActive: false
+            });
+        }
+    }
+
+    onDateRangeButtonClick() {
+        console.log('Yay!');
     }
 
     singleCurry(func, curriedParam) {
@@ -262,11 +285,25 @@ class Home extends PureComponent {
               <Toolbar style={style.toolbar}>
                 <ToolbarGroup style={style.toolbarGroup}>
                   <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
-                  <IconButton style={style.iconButton}>
-                    <DateRangeIcon color={'#F0EAFF'} hoverColor={'#FF5D9E'} />
+                  <IconButton
+                    style={style.iconButton}
+                    tooltip="Rango de fechas"
+                    tooltipPosition="bottom-center"
+                    onClick={this.onDateRangeButtonClick.bind(this)}
+                  >
+                    <DateRangeIcon
+                      color={this.state.dateRangeActive ? this._primaryColor : this._secondaryColor}
+                    />
                   </IconButton>
-                  <IconButton style={style.iconButton}>
-                    <UpdateIcon color={'#F0EAFF'} hoverColor={'#FF5D9E'} />
+                  <IconButton
+                    style={style.iconButton}
+                    tooltip="Tiempo real"
+                    tooltipPosition="bottom-center"
+                    onClick={this.onRealTimeButtonClick.bind(this)}
+                  >
+                    <UpdateIcon
+                      color={this.state.realTimeActive ? this._primaryColor : this._secondaryColor}
+                    />
                   </IconButton>
                 </ToolbarGroup>
               </Toolbar>
