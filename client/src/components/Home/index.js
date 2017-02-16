@@ -152,8 +152,18 @@ class Home extends Component {
         const now = Date.now();
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        const lastItem = this.state[data.type].list[currentItems - 1];
         let newItem = [timestamp, item];
+        let lastItem;
+
+        if (currentItems > 0) {
+            for (let i = currentItems - 1; i >= 0; i--) {
+                if (this.state[data.type].list[i][0]) {
+                    lastItem = this.state[data.type].list[i];
+
+                    break;
+                }
+            }
+        }
 
         // Is old?
         if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
