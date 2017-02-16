@@ -155,8 +155,6 @@ class Home extends Component {
         const lastItem = this.state[data.type].list[currentItems - 1];
         let newItem = [timestamp, item];
 
-        console.info(item);
-
         // Is old?
         if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
