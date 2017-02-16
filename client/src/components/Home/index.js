@@ -91,6 +91,9 @@ const baseChartOptions = {
             max: 200,
             axisLine: {
                 lineStyle: textStyle
+            },
+            splitLine: {
+                show: false
             }
         }
     ],
@@ -225,6 +228,9 @@ class Home extends Component {
                     minInterval: 5,
                     axisLine: {
                         lineStyle: textStyle
+                    },
+                    splitLine: {
+                        show: false
                     }
                 }
             ],
@@ -259,6 +265,9 @@ class Home extends Component {
                     minInterval: 5,
                     axisLine: {
                         lineStyle: textStyle
+                    },
+                    splitLine: {
+                        show: false
                     }
                 }
             ],
