@@ -180,8 +180,9 @@ class Home extends Component {
     }
 
     onRealTimeButtonClick() {
+        console.log(this.state);
         this.setLimit(this._heartBeatsToShow);
-        this.toggleRealTimeState();
+        this.setState({ realTime: true });
 
         this._database.ref(`${this._device}/activity`)
             .limitToLast(this._heartBeatsToShow)
@@ -189,8 +190,9 @@ class Home extends Component {
     }
 
     onDateRangeButtonClick() {
+        console.log(this.state);
         this.setLimit(50);
-        this.toggleRealTimeState();
+        this.setState({ realTime: false });
 
         this._database.ref(`${this._device}/activity`)
             .limitToLast(50)
@@ -285,7 +287,7 @@ class Home extends Component {
         newState[data.type].list = newArray;
         newState[data.type].last = newItem[0];
 
-        this.setState(newState);
+        this.setState({ [data.type]: newState[data.type] });
     }
 
     setLimit(number) {
@@ -296,15 +298,7 @@ class Home extends Component {
         newState.stepsPerMinute.limit = number;
         newState.stepsPerMinute.list = [];
 
-        this.setState(newState);
-    }
-
-    toggleRealTimeState() {
-        const newState = Object.assign({}, this.state);
-
-        newState.realTime = !this.state.realTime;
-
-        this.setState(newState);
+        this.setState({ beatsPerMinute: newState.beatsPerMinute, stepsPerMinute: newState.stepsPerMinute });
     }
 
     render() {
@@ -347,7 +341,7 @@ class Home extends Component {
                     onClick={this.onDateRangeButtonClick.bind(this)}
                   >
                     <DateRangeIcon
-                      color={!this.state.realTime ? this._primaryColor : this._secondaryColor}
+                      color={this.state.realTime ? this._secondaryColor : this._primaryColor}
                     />
                   </IconButton>
                   <IconButton
