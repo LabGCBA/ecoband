@@ -16,7 +16,7 @@
         "constructor-super": "error",
         "no-console": [0],
         "no-unused-vars": [0],
-        "no-underscode-dangle": [0],
+        "no-underscore-dangle": [0],
         "brace-style": [1, "stroustrup"],
         "import/imports-first": [0],
         "max-len": [1, 120],
