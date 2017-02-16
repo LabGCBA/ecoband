@@ -165,16 +165,9 @@ class Home extends PureComponent {
     }
 
     toggleRealTimeState() {
-        if (this.state.realTimeActive) {
-            this.setState({
-                realTimeActive: false
-            });
-        }
-        else {
-            this.setState({
-                realTimeActive: true
-            });
-        }
+        this.setState({
+            realTimeActive: !this.state.realTimeActive
+        });
     }
 
     singleCurry(func, curriedParam) {
