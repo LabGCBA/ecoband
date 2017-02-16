@@ -180,7 +180,6 @@ class Home extends Component {
     }
 
     onRealTimeButtonClick() {
-        console.log(this.state);
         this.setLimit(this._heartBeatsToShow);
         this.setState({ realTime: true });
 
@@ -190,7 +189,6 @@ class Home extends Component {
     }
 
     onDateRangeButtonClick() {
-        console.log(this.state);
         this.setLimit(50);
         this.setState({ realTime: false });
 
