@@ -69,6 +69,15 @@ const baseChartOptions = {
     grid: {
         show: false
     },
+    yAxis: [
+        {
+            type: 'value',
+            max: 200,
+            axisLine: {
+                lineStyle: textStyle
+            }
+        }
+    ],
     textStyle
 };
 
@@ -126,6 +135,26 @@ class Home extends PureComponent {
         this.setState({ [data.type]: newArray });
     }
 
+    onChartReady(echartsInstance, type) {
+        const item = {
+            val: () => {
+                return {
+                    value: null,
+                    timestamp: null,
+                    type
+                };
+            }
+        };
+
+        this.onItemAdded(item);
+    }
+
+    singleCurry(func, curriedParam) {
+        return (closureParam) => {
+            func.bind(this)(closureParam, curriedParam);
+        };
+    }
+
     getBeatsChartOptions() {
         const customOptions = {
             title: {
@@ -139,15 +168,6 @@ class Home extends PureComponent {
                     max: this.state.lastBeat,
                     splitNumber: 5,
                     minInterval: 5,
-                    axisLine: {
-                        lineStyle: textStyle
-                    }
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    max: 200,
                     axisLine: {
                         lineStyle: textStyle
                     }
@@ -185,18 +205,9 @@ class Home extends PureComponent {
                     }
                 }
             ],
-            yAxis: [
-                {
-                    type: 'value',
-                    max: 200,
-                    axisLine: {
-                        lineStyle: textStyle
-                    }
-                }
-            ],
             series: [
                 {
-                    name: 'Pasos',
+                    name: 'Pulsaciones',
                     type: 'line',
                     data: this.state.stepsPerMinute,
                     itemStyle,
@@ -252,8 +263,14 @@ class Home extends PureComponent {
                 </ToolbarGroup>
               </Toolbar>
               <div style={style.content}>
-                <ReactEcharts option={this.getBeatsChartOptions()} />
-                <ReactEcharts option={this.getStepsChartOptions()} />
+                <ReactEcharts
+                  option={this.getBeatsChartOptions()}
+                  onChartReady={this.singleCurry.bind(this)(this.onChartReady, 'beatsPerMinute')}
+                />
+                <ReactEcharts
+                  option={this.getStepsChartOptions()}
+                  onChartReady={this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')}
+                />
               </div>
             </section>
           </MuiThemeProvider>
