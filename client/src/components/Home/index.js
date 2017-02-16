@@ -41,7 +41,16 @@ const itemStyle = {
     }
 };
 
-const areaStyle = itemStyle;
+const areaStyle = {
+    normal: {
+        color: '#FF5D9E',
+        opacity: 0.5
+    },
+    emphasis: {
+        color: '#F0EAFF',
+        opacity: 0.5
+    }
+};
 
 const baseChartOptions = {
     animation: false,
