@@ -108,8 +108,7 @@ class Home extends PureComponent {
             lastStep: new Date(),
             isBeatsChartLoading: true,
             isStepsChartLoafing: false,
-            realTimeActive: true,
-            dateRangeActive: false
+            realTimeActive: true
         };
 
         this._ref.limitToLast(this._heartBeatsToShow).on('child_added', this.onItemAdded.bind(this));
@@ -158,31 +157,22 @@ class Home extends PureComponent {
     }
 
     onRealTimeButtonClick() {
-        if (this.state.realTimeActive) {
-            this.setState({
-                realTimeActive: false,
-                dateRangeActive: true
-            });
-        }
-        else {
-            this.setState({
-                realTimeActive: true,
-                dateRangeActive: false
-            });
-        }
+        this.toggleRealTimeState();
     }
 
     onDateRangeButtonClick() {
-        if (this.state.dateRangeActive) {
+        this.toggleRealTimeState();
+    }
+
+    toggleRealTimeState() {
+        if (this.state.realTimeActive) {
             this.setState({
-                realTimeActive: true,
-                dateRangeActive: false
+                realTimeActive: false
             });
         }
         else {
             this.setState({
-                realTimeActive: false,
-                dateRangeActive: true
+                realTimeActive: true
             });
         }
     }
@@ -303,7 +293,7 @@ class Home extends PureComponent {
                     onClick={this.onDateRangeButtonClick.bind(this)}
                   >
                     <DateRangeIcon
-                      color={this.state.dateRangeActive ? this._primaryColor : this._secondaryColor}
+                      color={!this.state.realTimeActive ? this._primaryColor : this._secondaryColor}
                     />
                   </IconButton>
                   <IconButton
