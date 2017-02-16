@@ -173,7 +173,18 @@ class Home extends PureComponent {
     }
 
     onDateRangeButtonClick() {
-        console.log('Yay!');
+        if (this.state.dateRangeActive) {
+            this.setState({
+                realTimeActive: true,
+                dateRangeActive: false
+            });
+        }
+        else {
+            this.setState({
+                realTimeActive: false,
+                dateRangeActive: true
+            });
+        }
     }
 
     singleCurry(func, curriedParam) {
