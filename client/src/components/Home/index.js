@@ -123,7 +123,7 @@ class Home extends Component {
 
         this._device = 'C8:0F:10:80:DA:BE';
         this._database = Firebase.database();
-        this._heartBeatsToShow = 25;
+        this._realTimeItems = 25;
         this._stepsToShow = 25;
         this._primaryColor = '#FF5D9E';
         this._secondaryColor = '#F0EAFF';
@@ -179,6 +179,8 @@ class Home extends Component {
         let newItem = [timestamp.toDate(), item];
         let lastItem;
 
+        console.log(data);
+
         if (currentItems > 0) {
             for (let i = currentItems - 1; i >= 0; i--) {
                 if (this.state[data.type].list[i][0]) {
@@ -215,11 +217,11 @@ class Home extends Component {
     }
 
     onRealTimeButtonClick() {
-        this.setLimit(this._heartBeatsToShow);
+        this.setLimit(this._realTimeItems);
         this.setState({ realTime: true });
 
         this._database.ref(`${this._device}/activity`)
-            .limitToLast(this._heartBeatsToShow)
+            .limitToLast(1)
             .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
@@ -250,13 +252,6 @@ class Home extends Component {
 
                 if (results) this.onItems(results);
             });
-
-            /*
-        this._database.ref(`${this._device}/activity`)
-            .orderByChild('timestamp')
-            .startAt(this.state.dateRange.start.valueOf())
-            .endAt(this.state.dateRange.end.valueOf())
-            .on('child_added', this.onItems.bind(this)); */
     }
 
     onDateRangeSelected(range) {
