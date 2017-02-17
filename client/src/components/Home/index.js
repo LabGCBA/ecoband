@@ -403,8 +403,16 @@ class Home extends Component {
                     showLegend={false}
                   />
                   <CardActions>
-                    <FlatButton label="Cancelar" onClick={this.onDateRangeModalCancelButtonClick.bind(this)} />
-                    <FlatButton label="Aceptar" onClick={this.onDateRangeModalOkButtonClick.bind(this)} />
+                    <FlatButton
+                      label="Cancelar"
+                      onClick={this.onDateRangeModalCancelButtonClick.bind(this)}
+                      hoverColor="#FF5D9E"
+                    />
+                    <FlatButton
+                      label="Aceptar"
+                      onClick={this.onDateRangeModalOkButtonClick.bind(this)}
+                      hoverColor="#FF5D9E"
+                    />
                   </CardActions>
                 </Card>
               </Modal>
