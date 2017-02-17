@@ -228,6 +228,7 @@ class Home extends Component {
 
     onDateRangeModalOkButtonClick() {
         console.info('Pressed modal Ok button');
+        this.setState({ showDateRangeModal: false });
     }
 
     singleCurry(func, curriedParam) {
@@ -380,7 +381,7 @@ class Home extends Component {
               <Modal
                 show={this.state.showDateRangeModal}
                 onClose={this.onDateRangeModalClose.bind(this)}
-                transitionSpeed={500}
+                transitionSpeed={300}
                 closeOnOuterClick={false}
                 containerStyle={style.modal}
               >
