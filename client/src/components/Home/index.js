@@ -130,12 +130,12 @@ class Home extends Component {
         this.state = {
             beatsPerMinute: {
                 list: [],
-                last: new Date(),
+                last: moment(),
                 limit: 25
             },
             stepsPerMinute: {
                 list: [],
-                last: new Date(),
+                last: moment(),
                 limit: 25
             },
             realTime: true,
@@ -144,16 +144,27 @@ class Home extends Component {
         };
 
         this._database.ref(`${this._device}/activity`)
-            .limitToLast(this._heartBeatsToShow)
+            .limitToLast(1)
             .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
-    onItemAdded(record) {
-        const data = record.val();
-        const item = data.value;
-        const timestamp = new Date(data.timestamp);
-        const newArray = [...this.state[data.type].list];
-        const newItem = [timestamp, item];
+    onItems(records) {
+        const newArray = [];
+        let newItem;
+        let data;
+
+        for (const key in records) {
+            if (records.hasOwnProperty(key)) {
+                data = records[key];
+
+                const item = data.value;
+                const timestamp = moment(data.timestamp);
+
+                newItem = [timestamp.toDate(), item];
+
+                if (this.state.dateRange.contains(timestamp)) newArray.push(newItem);
+            }
+        }
 
         this.setChartData(data, newItem, newArray);
     }
@@ -161,11 +172,11 @@ class Home extends Component {
     onItemAddedRealTime(record) {
         const data = record.val();
         const item = data.value;
-        const timestamp = new Date(data.timestamp);
+        const timestamp = moment(data.timestamp);
         const now = Date.now();
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        let newItem = [timestamp, item];
+        let newItem = [timestamp.toDate(), item];
         let lastItem;
 
         if (currentItems > 0) {
@@ -185,6 +196,7 @@ class Home extends Component {
 
         if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
+        newArray.push(newItem);
         this.setChartData(data, newItem, newArray);
     }
 
@@ -214,14 +226,9 @@ class Home extends Component {
     onDateRangeButtonClick() {
         this.setLimit(50);
         this.setState({ realTime: false, showDateRangeModal: true });
-
-        this._database.ref(`${this._device}/activity`)
-            .limitToLast(50)
-            .on('child_added', this.onItemAdded.bind(this));
     }
 
     onDateRangeModalClose() {
-        console.info('Closed date range modal');
     }
 
     onDateRangeModalCancelButtonClick() {
@@ -229,12 +236,32 @@ class Home extends Component {
     }
 
     onDateRangeModalOkButtonClick() {
-        console.info('Pressed modal Ok button');
         this.setState({ showDateRangeModal: false });
+
+        this._database.ref(`${this._device}/activity`)
+            .orderByChild('timestamp')
+            .startAt(this.state.dateRange.start.valueOf())
+            .endAt(this.state.dateRange.end.valueOf())
+            .once('value')
+            .then((records) => {
+                const results = records.val();
+
+                console.log(results);
+
+                if (results) this.onItems(results);
+            });
+
+            /*
+        this._database.ref(`${this._device}/activity`)
+            .orderByChild('timestamp')
+            .startAt(this.state.dateRange.start.valueOf())
+            .endAt(this.state.dateRange.end.valueOf())
+            .on('child_added', this.onItems.bind(this)); */
     }
 
     onDateRangeSelected(range) {
-        this.setState({ dateRange: range });
+        if (range.start.isSame(range.end)) range.end.add(1, 'millisecond');
+        if (!this.state.dateRange || !(this.state.dateRange.isEqual(range))) this.setState({ dateRange: range });
     }
 
     singleCurry(func, curriedParam) {
@@ -249,11 +276,18 @@ class Home extends Component {
                 text: 'Pulsaciones por minuto',
                 textStyle
             },
+            dataZoom: {
+                show: !this.state.realTime,
+                start: 75,
+                end: 100
+            },
             series: [
                 {
                     name: 'Pulsaciones',
-                    type: 'line',
+                    type: this.state.realTime ? 'line' : 'scatter',
                     data: this.state.beatsPerMinute.list,
+                    connectNulls: false,
+                    symbolSize: 5,
                     itemStyle,
                     lineStyle
                 }
@@ -269,11 +303,18 @@ class Home extends Component {
                 text: 'Pasos por minuto',
                 textStyle
             },
+            dataZoom: {
+                show: !this.state.realTime,
+                start: 75,
+                end: 100
+            },
             series: [
                 {
                     name: 'Pulsaciones',
-                    type: 'line',
+                    type: this.state.realTime ? 'line' : 'scatter',
                     data: this.state.stepsPerMinute.list,
+                    connectNulls: false,
+                    symbolSize: 5,
                     itemStyle,
                     lineStyle
                 }
@@ -290,8 +331,6 @@ class Home extends Component {
     }
 
     setChartData(data, newItem, newArray) {
-        newArray.push(newItem);
-
         const newState = Object.assign({}, this.state);
 
         newState[data.type].list = newArray;
