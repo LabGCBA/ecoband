@@ -337,7 +337,8 @@ class Home extends Component {
                 marginTop: '3rem'
             },
             modal: {
-                background: 'rgba(0, 0, 0, 0.5)'
+                background: 'rgba(0, 0, 0, 0.5)',
+                transition: 'opacity 0.3s ease-in'
             },
             modalContainer: {
                 padding: '0rem',
