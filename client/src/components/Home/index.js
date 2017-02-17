@@ -1,10 +1,14 @@
+import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
 import React, { Component } from 'react';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
 import Firebase from 'firebase';
+import FlatButton from 'material-ui/FlatButton';
 import IconButton from 'material-ui/IconButton';
+import Modal from 'simple-react-modal';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import RangePicker from 'react-daterange-picker';
 import ReactEcharts from 'echarts-for-react';
 import Toggle from 'material-ui/Toggle';
 import UpdateIcon from 'material-ui/svg-icons/action/update';
@@ -133,7 +137,8 @@ class Home extends Component {
                 last: new Date(),
                 limit: 25
             },
-            realTime: true
+            realTime: true,
+            showDateRangeModal: false
         };
 
         this._database.ref(`${this._device}/activity`)
@@ -206,11 +211,16 @@ class Home extends Component {
 
     onDateRangeButtonClick() {
         this.setLimit(50);
-        this.setState({ realTime: false });
+        this.setState({ realTime: false, showDateRangeModal: true });
 
         this._database.ref(`${this._device}/activity`)
             .limitToLast(50)
             .on('child_added', this.onItemAdded.bind(this));
+    }
+
+    onDateRangeModalClose() {
+        console.info('Closed date range modal');
+        this.setState({ showDateRangeModal: false });
     }
 
     singleCurry(func, curriedParam) {
@@ -311,6 +321,14 @@ class Home extends Component {
             },
             content: {
                 marginTop: '3rem'
+            },
+            modal: {
+                padding: '0rem',
+                background: 'none'
+            },
+            card: {
+                padding: '0rem',
+                borderRadius: '0.35rem'
             }
         };
 
@@ -352,6 +370,29 @@ class Home extends Component {
                   onChartReady={this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')}
                 />
               </div>
+              <Modal
+                show={this.state.showDateRangeModal}
+                onClose={this.onDateRangeModalClose.bind(this)}
+                transitionSpeed={500}
+                closeOnOuterClick={false}
+                containerStyle={style.modal}
+              >
+                <Card style={style.card}>
+                  <CardHeader
+                    title="Rango de fechas"
+                  />
+                  <CardActions>
+                    <FlatButton label="Cancelar" />
+                    <FlatButton label="Aceptar" />
+                  </CardActions>
+                  <CardText expandable>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
+                    Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
+                    Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
+                  </CardText>
+                </Card>
+              </Modal>
             </section>
           </MuiThemeProvider>
         );
