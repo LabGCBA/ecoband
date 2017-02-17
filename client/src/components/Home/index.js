@@ -337,46 +337,14 @@ class Home extends Component {
             },
             modal: {
                 padding: '0rem',
-                background: 'none'
+                background: 'none',
+                width: '315px'
             },
             card: {
                 padding: '0rem',
                 borderRadius: '0.35rem'
             }
         };
-
-        const stateDefinitions = {
-            available: {
-                color: null,
-                label: 'Available'
-            },
-            enquire: {
-                color: '#ffd200',
-                label: 'Enquire'
-            },
-            unavailable: {
-                selectable: false,
-                color: '#78818b',
-                label: 'Unavailable'
-            }
-        };
-
-        const dateRanges = [
-            {
-                state: 'enquire',
-                range: moment.range(
-                    moment().add(2, 'weeks').subtract(5, 'days'),
-                    moment().add(2, 'weeks').add(6, 'days')
-                )
-            },
-            {
-                state: 'unavailable',
-                range: moment.range(
-                    moment().add(3, 'weeks'),
-                    moment().add(3, 'weeks').add(5, 'days')
-                )
-            }
-        ];
 
         return (
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
@@ -426,16 +394,12 @@ class Home extends Component {
                 <Card style={style.card}>
                   <CardHeader title="Rango de fechas" />
                   <DateRangePicker
-                    firstOfWeek={1}
-                    numberOfCalendars={2}
-                    selectionType='range'
-                    minimumDate={new Date()}
-                    stateDefinitions={stateDefinitions}
-                    dateStates={dateRanges}
-                    defaultState="available"
+                    firstOfWeek={0}
+                    numberOfCalendars={1}
+                    selectionType="range"
                     value={this.state.value}
                     onSelect={this.onDateRangeSelect.bind(this)}
-                    showLegend
+                    showLegend={false}
                   />
                   <CardActions>
                     <FlatButton label="Cancelar" onClick={this.onDateRangeModalCancelButtonClick.bind(this)} />

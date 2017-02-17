@@ -7,6 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-preset-kyt-react": "0.1.1",
+    "css-loader": "^0.26.1",
     "echarts-for-react": "^1.1.6",
     "firebase": "^3.6.9",
     "html-webpack-plugin": "^2.22.0",
@@ -19,6 +20,7 @@
     "react-dom": "^15.3.0",
     "react-router": "^2.6.1",
     "react-tap-event-plugin": "^2.0.1",
+    "sass-loader": "^6.0.1",
     "simple-react-modal": "^0.5.1"
   },
   "devDependencies": {
