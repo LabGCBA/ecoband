@@ -483,7 +483,7 @@ namespace EcoBand {
             record = new Dictionary<string, object>() {
                 { "type", type },
                 { "value", measurement },
-                { "timestamp", DateTime.Now.Subtract(DateTime.MinValue.AddYears(1969)).TotalMilliseconds }
+                { "timestamp", (long) DateTime.Now.Subtract(DateTime.MinValue.AddYears(1969)).TotalMilliseconds }
             };
 
             try {

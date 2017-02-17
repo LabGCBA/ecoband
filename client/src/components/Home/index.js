@@ -260,8 +260,10 @@ class Home extends Component {
     }
 
     onDateRangeSelected(range) {
-        if (range.start.isSame(range.end)) range.end.add(1, 'millisecond');
-        if (!this.state.dateRange || !(this.state.dateRange.isEqual(range))) this.setState({ dateRange: range });
+        if (range.start.isSame(range.end)) range.end.add(1, 'seconds');
+        if (this.state.dateRange || !this.state.dateRange || !(this.state.dateRange.isEqual(range))) {
+            this.setState({ dateRange: range });
+        }
     }
 
     singleCurry(func, curriedParam) {
