@@ -220,7 +220,14 @@ class Home extends Component {
 
     onDateRangeModalClose() {
         console.info('Closed date range modal');
+    }
+
+    onDateRangeModalCancelButtonClick() {
         this.setState({ showDateRangeModal: false });
+    }
+
+    onDateRangeModalOkButtonClick() {
+        console.info('Pressed modal Ok button');
     }
 
     singleCurry(func, curriedParam) {
@@ -378,12 +385,11 @@ class Home extends Component {
                 containerStyle={style.modal}
               >
                 <Card style={style.card}>
-                  <CardHeader
-                    title="Rango de fechas"
-                  />
+                  <CardHeader title="Rango de fechas" />
+
                   <CardActions>
-                    <FlatButton label="Cancelar" />
-                    <FlatButton label="Aceptar" />
+                    <FlatButton label="Cancelar" onClick={this.onDateRangeModalCancelButtonClick.bind(this)} />
+                    <FlatButton label="Aceptar" onClick={this.onDateRangeModalOkButtonClick.bind(this)} />
                   </CardActions>
                 </Card>
               </Modal>
