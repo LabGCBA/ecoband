@@ -1147,32 +1147,32 @@ namespace EcoBand
 		public partial class Color
 		{
 			
-			// aapt resource value: 0x7f090060
-			public const int abc_background_cache_hint_selector_material_dark = 2131296352;
-			
 			// aapt resource value: 0x7f090061
-			public const int abc_background_cache_hint_selector_material_light = 2131296353;
+			public const int abc_background_cache_hint_selector_material_dark = 2131296353;
 			
 			// aapt resource value: 0x7f090062
-			public const int abc_color_highlight_material = 2131296354;
+			public const int abc_background_cache_hint_selector_material_light = 2131296354;
+			
+			// aapt resource value: 0x7f090063
+			public const int abc_color_highlight_material = 2131296355;
 			
 			// aapt resource value: 0x7f09000a
 			public const int abc_input_method_navigation_guard = 2131296266;
 			
-			// aapt resource value: 0x7f090063
-			public const int abc_primary_text_disable_only_material_dark = 2131296355;
-			
 			// aapt resource value: 0x7f090064
-			public const int abc_primary_text_disable_only_material_light = 2131296356;
+			public const int abc_primary_text_disable_only_material_dark = 2131296356;
 			
 			// aapt resource value: 0x7f090065
-			public const int abc_primary_text_material_dark = 2131296357;
+			public const int abc_primary_text_disable_only_material_light = 2131296357;
 			
 			// aapt resource value: 0x7f090066
-			public const int abc_primary_text_material_light = 2131296358;
+			public const int abc_primary_text_material_dark = 2131296358;
 			
 			// aapt resource value: 0x7f090067
-			public const int abc_search_url_text = 2131296359;
+			public const int abc_primary_text_material_light = 2131296359;
+			
+			// aapt resource value: 0x7f090068
+			public const int abc_search_url_text = 2131296360;
 			
 			// aapt resource value: 0x7f09000b
 			public const int abc_search_url_text_normal = 2131296267;
@@ -1183,11 +1183,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f09000d
 			public const int abc_search_url_text_selected = 2131296269;
 			
-			// aapt resource value: 0x7f090068
-			public const int abc_secondary_text_material_dark = 2131296360;
-			
 			// aapt resource value: 0x7f090069
-			public const int abc_secondary_text_material_light = 2131296361;
+			public const int abc_secondary_text_material_dark = 2131296361;
+			
+			// aapt resource value: 0x7f09006a
+			public const int abc_secondary_text_material_light = 2131296362;
 			
 			// aapt resource value: 0x7f09000e
 			public const int accent_material_dark = 2131296270;
@@ -1231,17 +1231,17 @@ namespace EcoBand
 			// aapt resource value: 0x7f09001b
 			public const int button_material_light = 2131296283;
 			
-			// aapt resource value: 0x7f09005f
-			public const int colorAccent = 2131296351;
+			// aapt resource value: 0x7f090060
+			public const int colorAccent = 2131296352;
 			
-			// aapt resource value: 0x7f09005c
-			public const int colorPrimary = 2131296348;
+			// aapt resource value: 0x7f09005d
+			public const int colorPrimary = 2131296349;
 			
 			// aapt resource value: 0x7f090052
 			public const int common_action_bar_splitter = 2131296338;
 			
-			// aapt resource value: 0x7f09006a
-			public const int common_google_signin_btn_text_dark = 2131296362;
+			// aapt resource value: 0x7f09006b
+			public const int common_google_signin_btn_text_dark = 2131296363;
 			
 			// aapt resource value: 0x7f090053
 			public const int common_google_signin_btn_text_dark_default = 2131296339;
@@ -1255,8 +1255,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090054
 			public const int common_google_signin_btn_text_dark_pressed = 2131296340;
 			
-			// aapt resource value: 0x7f09006b
-			public const int common_google_signin_btn_text_light = 2131296363;
+			// aapt resource value: 0x7f09006c
+			public const int common_google_signin_btn_text_light = 2131296364;
 			
 			// aapt resource value: 0x7f090057
 			public const int common_google_signin_btn_text_light_default = 2131296343;
@@ -1270,8 +1270,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f090058
 			public const int common_google_signin_btn_text_light_pressed = 2131296344;
 			
-			// aapt resource value: 0x7f09006c
-			public const int common_plus_signin_btn_text_dark = 2131296364;
+			// aapt resource value: 0x7f09006d
+			public const int common_plus_signin_btn_text_dark = 2131296365;
 			
 			// aapt resource value: 0x7f09004a
 			public const int common_plus_signin_btn_text_dark_default = 2131296330;
@@ -1285,8 +1285,8 @@ namespace EcoBand
 			// aapt resource value: 0x7f09004b
 			public const int common_plus_signin_btn_text_dark_pressed = 2131296331;
 			
-			// aapt resource value: 0x7f09006d
-			public const int common_plus_signin_btn_text_light = 2131296365;
+			// aapt resource value: 0x7f09006e
+			public const int common_plus_signin_btn_text_light = 2131296366;
 			
 			// aapt resource value: 0x7f09004e
 			public const int common_plus_signin_btn_text_light_default = 2131296334;
@@ -1462,11 +1462,11 @@ namespace EcoBand
 			// aapt resource value: 0x7f090041
 			public const int switch_thumb_disabled_material_light = 2131296321;
 			
-			// aapt resource value: 0x7f09006e
-			public const int switch_thumb_material_dark = 2131296366;
-			
 			// aapt resource value: 0x7f09006f
-			public const int switch_thumb_material_light = 2131296367;
+			public const int switch_thumb_material_dark = 2131296367;
+			
+			// aapt resource value: 0x7f090070
+			public const int switch_thumb_material_light = 2131296368;
 			
 			// aapt resource value: 0x7f090042
 			public const int switch_thumb_normal_material_dark = 2131296322;
@@ -1474,11 +1474,14 @@ namespace EcoBand
 			// aapt resource value: 0x7f090043
 			public const int switch_thumb_normal_material_light = 2131296323;
 			
-			// aapt resource value: 0x7f09005e
-			public const int textColorBody = 2131296350;
+			// aapt resource value: 0x7f09005f
+			public const int textColorBody = 2131296351;
 			
-			// aapt resource value: 0x7f09005d
-			public const int textColorPrimary = 2131296349;
+			// aapt resource value: 0x7f09005e
+			public const int textColorPrimary = 2131296350;
+			
+			// aapt resource value: 0x7f09005c
+			public const int toolbarBackground = 2131296348;
 			
 			// aapt resource value: 0x7f09005b
 			public const int windowBackground = 2131296347;

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <resources>
     <color name="windowBackground">#2C2734</color>
+	<color name="toolbarBackground">#27232F</color>
     <color name="colorPrimary">#2C2734</color>
     <color name="textColorPrimary">#F0EAFF</color>
 	<color name="textColorBody">#F0EAFF</color>
