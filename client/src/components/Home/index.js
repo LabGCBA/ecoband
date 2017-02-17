@@ -342,7 +342,8 @@ class Home extends Component {
             },
             card: {
                 padding: '0rem',
-                borderRadius: '0.35rem'
+                borderRadius: '0.35rem',
+                background: '#2C2734'
             }
         };
 
@@ -391,7 +392,7 @@ class Home extends Component {
                 closeOnOuterClick={false}
                 containerStyle={style.modal}
               >
-                <Card style={style.card}>
+                <Card style={style.card} className="card">
                   <CardHeader title="Rango de fechas" />
                   <DateRangePicker
                     firstOfWeek={0}
