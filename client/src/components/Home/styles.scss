@@ -153,12 +153,10 @@ $ns: DateRangePicker !default;
 
     &__WeekdayHeading {
         border-bottom: 1px solid transparent;
-        color: #000;
         font-weight: bold;
 
         abbr[title] {
             border-bottom-width: 0;
-            color: #000;
             cursor: pointer;
             font-size: inherit;
             text-decoration: none;
