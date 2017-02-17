@@ -336,6 +336,9 @@ class Home extends Component {
                 marginTop: '3rem'
             },
             modal: {
+                background: 'rgba(0, 0, 0, 0.5)'
+            },
+            modalContainer: {
                 padding: '0rem',
                 background: 'none',
                 width: '315px'
@@ -390,7 +393,8 @@ class Home extends Component {
                 onClose={this.onDateRangeModalClose.bind(this)}
                 transitionSpeed={300}
                 closeOnOuterClick={false}
-                containerStyle={style.modal}
+                containerStyle={style.modalContainer}
+                style={style.modal}
               >
                 <Card style={style.card} className="card">
                   <CardHeader title="Rango de fechas" />
