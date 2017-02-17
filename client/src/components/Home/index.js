@@ -139,7 +139,8 @@ class Home extends Component {
                 limit: 25
             },
             realTime: true,
-            showDateRangeModal: false
+            showDateRangeModal: false,
+            dateRange: null
         };
 
         this._database.ref(`${this._device}/activity`)
@@ -232,8 +233,8 @@ class Home extends Component {
         this.setState({ showDateRangeModal: false });
     }
 
-    onDateRangeSelect() {
-
+    onDateRangeSelected(range) {
+        this.setState({ dateRange: range });
     }
 
     singleCurry(func, curriedParam) {
@@ -402,9 +403,10 @@ class Home extends Component {
                     firstOfWeek={0}
                     numberOfCalendars={1}
                     selectionType="range"
-                    value={this.state.value}
-                    onSelect={this.onDateRangeSelect.bind(this)}
                     showLegend={false}
+                    onSelect={this.onDateRangeSelected.bind(this)}
+                    value={this.state.dateRange}
+                    singleDateRange
                   />
                   <CardActions>
                     <FlatButton
