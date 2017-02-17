@@ -492,19 +492,22 @@ namespace EcoBand {
                     // .WithAuth(_firebaseToken)
                     .PostAsync(record);
 
-                if (result.Object.Count > 0) return true;
+                if (result.Object.Count > 0) {
+                    Log.Debug("MAIN", $"##### Sent activity of type {type} to Firebase");
+
+                    return true;
+                }
 
                 return false;
-
             }
             catch (WebException ex) {
                 // if (ex.Status == WebExceptionStatus.NameResolutionFailure) return false;
-                Log.Error("MAIN", $"Error saving data: {ex.Message}");
+                Log.Error("MAIN", $"Error sending data to Firebase: {ex.Message}");
 
                 return false;
             }
             catch (Exception ex) {
-                Log.Error("MAIN", $"Error saving data: {ex.Message}");
+                Log.Error("MAIN", $"Error sending data to Firebase: {ex.Message}");
 
                 return false;
             }
