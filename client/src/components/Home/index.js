@@ -1,24 +1,25 @@
-import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
+import { Card, CardActions, CardHeader } from 'material-ui/Card';
 import React, { Component } from 'react';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
+import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
 import FlatButton from 'material-ui/FlatButton';
 import IconButton from 'material-ui/IconButton';
 import Modal from 'simple-react-modal';
+import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import RangePicker from 'react-daterange-picker';
 import ReactEcharts from 'echarts-for-react';
 import Toggle from 'material-ui/Toggle';
 import UpdateIcon from 'material-ui/svg-icons/action/update';
-import differenceInMilliseconds from 'date-fns/difference_in_milliseconds';
-import differenceInSeconds from 'date-fns/difference_in_seconds';
+import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import styles from './styles.scss';
-import substractSeconds from 'date-fns/sub_seconds';
+
+const moment = extendMoment(Moment);
 
 const textStyle = {
     color: '#F0EAFF',
@@ -177,9 +178,9 @@ class Home extends Component {
         }
 
         // Is old?
-        if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
+        if (moment.range(newItem[0], now).diff('seconds', false) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
-        else if (lastItem && differenceInMilliseconds(lastItem[0], newItem[0]) > 0) return;
+        else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
 
         if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
@@ -229,6 +230,10 @@ class Home extends Component {
     onDateRangeModalOkButtonClick() {
         console.info('Pressed modal Ok button');
         this.setState({ showDateRangeModal: false });
+    }
+
+    onDateRangeSelect() {
+
     }
 
     singleCurry(func, curriedParam) {
@@ -340,6 +345,39 @@ class Home extends Component {
             }
         };
 
+        const stateDefinitions = {
+            available: {
+                color: null,
+                label: 'Available'
+            },
+            enquire: {
+                color: '#ffd200',
+                label: 'Enquire'
+            },
+            unavailable: {
+                selectable: false,
+                color: '#78818b',
+                label: 'Unavailable'
+            }
+        };
+
+        const dateRanges = [
+            {
+                state: 'enquire',
+                range: moment.range(
+                    moment().add(2, 'weeks').subtract(5, 'days'),
+                    moment().add(2, 'weeks').add(6, 'days')
+                )
+            },
+            {
+                state: 'unavailable',
+                range: moment.range(
+                    moment().add(3, 'weeks'),
+                    moment().add(3, 'weeks').add(5, 'days')
+                )
+            }
+        ];
+
         return (
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
             <section id="main" style={style.main}>
@@ -387,7 +425,18 @@ class Home extends Component {
               >
                 <Card style={style.card}>
                   <CardHeader title="Rango de fechas" />
-
+                  <DateRangePicker
+                    firstOfWeek={1}
+                    numberOfCalendars={2}
+                    selectionType='range'
+                    minimumDate={new Date()}
+                    stateDefinitions={stateDefinitions}
+                    dateStates={dateRanges}
+                    defaultState="available"
+                    value={this.state.value}
+                    onSelect={this.onDateRangeSelect.bind(this)}
+                    showLegend
+                  />
                   <CardActions>
                     <FlatButton label="Cancelar" onClick={this.onDateRangeModalCancelButtonClick.bind(this)} />
                     <FlatButton label="Aceptar" onClick={this.onDateRangeModalOkButtonClick.bind(this)} />
