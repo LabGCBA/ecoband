@@ -1,7 +1,6 @@
 import { Card, CardActions, CardHeader } from 'material-ui/Card';
 import { CircularProgress, FlatButton, IconButton, Toggle } from 'material-ui';
 import React, { Component } from 'react';
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
 import DateRangePicker from 'react-daterange-picker';
@@ -10,6 +9,7 @@ import Modal from 'simple-react-modal';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
+import Toolbar from '../Toolbar';
 import UpdateIcon from 'material-ui/svg-icons/action/update';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -116,13 +116,7 @@ class Home extends Component {
         injectTapEventPlugin();
         super(props);
 
-        Firebase.initializeApp({
-            authDomain: 'ecoband-5e79f.firebaseapp.com',
-            databaseURL: 'https://ecoband-5e79f.firebaseio.com'
-        });
-
         this._device = 'C8:0F:10:80:DA:BE';
-        this._database = Firebase.database();
         this._realTimeItems = 25;
         this.state = {
             beatsPerMinute: {
@@ -139,13 +133,22 @@ class Home extends Component {
             loading: false,
             showDateRangeModal: false,
             dateRange: null,
-            connected: false
+            connected: true
         };
+    }
+
+    componentDidMount() {
+        Firebase.initializeApp({
+            authDomain: 'ecoband-5e79f.firebaseapp.com',
+            databaseURL: 'https://ecoband-5e79f.firebaseio.com'
+        });
+
+        this._database = Firebase.database();
 
         this._database.ref(`${this._device}/activity`)
             .limitToLast(1)
             .on('child_added', this.onItemAddedRealTime.bind(this));
-        this._database.ref.child('.info/connected')
+        this._database.ref('.info/connected')
             .on('value', this.onFirebaseConnectionStateChanged.bind(this));
     }
 
@@ -420,31 +423,13 @@ class Home extends Component {
         return (
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
             <section id="main" style={style.main}>
-              <Toolbar style={style.toolbar}>
-                <ToolbarGroup style={style.toolbarGroup}>
-                  <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
-                  <IconButton
-                    style={style.iconButton}
-                    tooltip="Rango de fechas"
-                    tooltipPosition="bottom-center"
-                    onClick={this.onDateRangeButtonClick.bind(this)}
-                  >
-                    <DateRangeIcon
-                      color={this.state.realTime ? secondaryColor : primaryColor}
-                    />
-                  </IconButton>
-                  <IconButton
-                    style={style.iconButton}
-                    tooltip="Tiempo real"
-                    tooltipPosition="bottom-center"
-                    onClick={this.onRealTimeButtonClick.bind(this)}
-                  >
-                    <UpdateIcon
-                      color={this.state.realTime ? primaryColor : secondaryColor}
-                    />
-                  </IconButton>
-                </ToolbarGroup>
-              </Toolbar>
+              <Toolbar
+                onDateRangeButtonClick={this.onDateRangeButtonClick.bind(this)}
+                onRealTimeButtonClick={this.onRealTimeButtonClick.bind(this)}
+                realTime={this.state.realTime}
+                primaryColor={primaryColor}
+                secondaryColor={secondaryColor}
+              />
               <div style={style.content}>
                 <ReactEcharts
                   option={this.getBeatsChartOptions()}
