@@ -6,6 +6,7 @@ import Charts from '../Charts';
 import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
 import Modal from 'simple-react-modal';
+import Modals from '../Modals';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Toolbar from '../Toolbar';
@@ -435,72 +436,38 @@ class Home extends Component {
               />
               <Charts
                 style={style.content}
-                options={[
-                    this.getBeatsChartOptions(),
-                    this.getStepsChartOptions()
-                ]}
-                onChartReadyCallbacks={[
-                    this.singleCurry.bind(this)(this.onChartReady, 'beatsPerMinute'),
-                    this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')
-                ]}
+                options={{
+                    beats: this.getBeatsChartOptions(),
+                    steps: this.getStepsChartOptions()
+                }}
+                onChartReady={{
+                    beats: this.singleCurry.bind(this)(this.onChartReady, 'beatsPerMinute'),
+                    steps: this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')
+                }}
               />
-              <Modal
-                show={this.state.loading}
-                transitionSpeed={100}
-                closeOnOuterClick={false}
-                containerStyle={style.dateRangeModalContainer}
-                style={style.modal}
-              >
-                <CircularProgress
-                  color={primaryColor}
-                  size={75}
-                />
-              </Modal>
-              <Modal
-                show={this.state.showDateRangeModal}
-                onClose={this.onDateRangeModalClose.bind(this)}
-                transitionSpeed={100}
-                closeOnOuterClick={false}
-                containerStyle={style.spinnerModalContainer}
-                style={style.modal}
-              >
-                <Card style={style.card} className="card">
-                  <CardHeader title="Rango de fechas" />
-                  <DateRangePicker
-                    firstOfWeek={0}
-                    numberOfCalendars={1}
-                    selectionType="range"
-                    showLegend={false}
-                    onSelect={this.onDateRangeSelected.bind(this)}
-                    value={this.state.dateRange}
-                    maximumDate={moment().toDate()}
-                    singleDateRange
-                  />
-                  <CardActions>
-                    <FlatButton
-                      label="Cancelar"
-                      onClick={this.onDateRangeModalCancelButtonClick.bind(this)}
-                      hoverColor={primaryColor}
-                    />
-                    <FlatButton
-                      label="Aceptar"
-                      onClick={this.onDateRangeModalOkButtonClick.bind(this)}
-                      hoverColor={primaryColor}
-                    />
-                  </CardActions>
-                </Card>
-              </Modal>
-              <Modal
-                show={!this.state.connected}
-                transitionSpeed={100}
-                closeOnOuterClick={false}
-                containerStyle={style.dateRangeModalContainer}
-                style={style.modal}
-              >
-                <Card style={style.card} className="card">
-                  <CardHeader title="Sin conexión a internet" />
-                </Card>
-              </Modal>
+              <Modals
+                show={{
+                    spinner: this.state.loading,
+                    dateRange: this.state.showDateRangeModal,
+                    connection: !this.state.connected
+                }}
+                values={{
+                    dateRange: this.state.dateRange
+                }}
+                onSelect={{
+                    dateRange: this.onDateRangeSelected.bind(this)
+                }}
+                onClose={{
+                    dateRange: this.onDateRangeModalClose.bind(this)
+                }}
+                onCancelButtonClick={{
+                    dateRange: this.onDateRangeModalCancelButtonClick.bind(this)
+                }}
+                onOkButtonClick={{
+                    dateRange: this.onDateRangeModalOkButtonClick.bind(this)
+                }}
+                primaryColor={primaryColor}
+              />
             </section>
           </MuiThemeProvider>
         );

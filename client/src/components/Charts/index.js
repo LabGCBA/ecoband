@@ -7,12 +7,12 @@ class Charts extends PureComponent {
         return (
           <div style={this.props.style}>
             <ReactEcharts
-              option={this.props.options[0]}
-              onChartReady={this.props.onChartReadyCallbacks[0]}
+              option={this.props.options.beats}
+              onChartReady={this.props.onChartReady.steps}
             />
             <ReactEcharts
-              option={this.props.options[1]}
-              onChartReady={this.props.onChartReadyCallbacks[1]}
+              option={this.props.options.steps}
+              onChartReady={this.props.onChartReady.steps}
             />
           </div >
         );
@@ -20,9 +20,9 @@ class Charts extends PureComponent {
 }
 
 Charts.propTypes = {
-    style: PropTypes.Object,
-    options: PropTypes.Array,
-    onChartReadyCallbacks: PropTypes.Array
+    style: PropTypes.object,
+    options: PropTypes.object,
+    onChartReady: PropTypes.object
 };
 
 export default Charts;
