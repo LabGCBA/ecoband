@@ -1,5 +1,5 @@
 import { Card, CardActions, CardHeader } from 'material-ui/Card';
-import { CircularProgress, FlatButton, IconButton, Toggle } from 'material-ui';
+import { CircularProgress, FlatButton } from 'material-ui';
 import React, { Component } from 'react';
 
 import DateRangePicker from 'react-daterange-picker';
