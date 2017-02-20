@@ -18,7 +18,7 @@ const secondaryColor = '#F0EAFF';
 
 const textStyle = {
     color: secondaryColor,
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
+    fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif'
 };
 
 const lineStyle = {
