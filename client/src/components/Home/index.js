@@ -179,6 +179,7 @@ class Home extends Component {
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
         const now = Date.now();
+
         let newItem = [new Date(timestamp), item];
         let lastItem;
 
@@ -252,8 +253,6 @@ class Home extends Component {
             .once('value')
             .then((records) => {
                 const results = records.val();
-
-                console.info(results);
 
                 if (results) this.onItems(results);
             });
