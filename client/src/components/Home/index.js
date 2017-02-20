@@ -230,7 +230,7 @@ class Home extends Component {
     }
 
     onRealTimeButtonClick() {
-        this.setLimit(this._realTimeItems);
+        this.clearData();
         this.setState({ realTime: true });
 
         this._database.ref(`${this._device}/activity`)
@@ -239,7 +239,7 @@ class Home extends Component {
     }
 
     onDateRangeButtonClick() {
-        this.setLimit(50);
+        this.clearData();
         this.setState({ realTime: false, showDateRangeModal: true });
     }
 
@@ -371,12 +371,10 @@ class Home extends Component {
         this.setState({ [type]: newState[type] });
     }
 
-    setLimit(number) {
+    clearData() {
         const newState = Object.assign({}, this.state);
 
-        newState.beatsPerMinute.limit = number;
         newState.beatsPerMinute.list = [];
-        newState.stepsPerMinute.limit = number;
         newState.stepsPerMinute.list = [];
 
         this.setState({ beatsPerMinute: newState.beatsPerMinute, stepsPerMinute: newState.stepsPerMinute });
