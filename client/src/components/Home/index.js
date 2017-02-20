@@ -1,24 +1,19 @@
 import { Card, CardActions, CardHeader } from 'material-ui/Card';
+import { CircularProgress, FlatButton, IconButton, Toggle } from 'material-ui';
 import React, { Component } from 'react';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
 
 import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
 import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
-import FlatButton from 'material-ui/FlatButton';
-import IconButton from 'material-ui/IconButton';
 import Modal from 'simple-react-modal';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
-import Toggle from 'material-ui/Toggle';
 import UpdateIcon from 'material-ui/svg-icons/action/update';
-import differenceInSeconds from 'date-fns/difference_in_seconds';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
-import isAfter from 'date-fns/is_after';
-import isInRange from 'date-fns/is_within_range';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import styles from './styles.scss';
 
@@ -132,17 +127,16 @@ class Home extends Component {
         this.state = {
             beatsPerMinute: {
                 list: [],
-                last: new Date(),
-                limit: 25,
-                loading: false
+                last: moment(),
+                limit: 25
             },
             stepsPerMinute: {
                 list: [],
-                last: new Date(),
-                limit: 25,
-                loading: false
+                last: moment(),
+                limit: 25
             },
             realTime: true,
+            loading: false,
             showDateRangeModal: false,
             dateRange: null
         };
@@ -162,11 +156,10 @@ class Home extends Component {
                 data = records[key];
 
                 const item = data.value;
-                const timestamp = moment(data.timestamp);
 
-                newItem = [new Date(timestamp), item];
+                newItem = [new Date(data.timestamp * 1000), item];
 
-                if (isInRange(timestamp, this.state.dateRange.start, this.state.dateRange.end)) newArray.push(newItem);
+                if (this.state.dateRange.contains(data.timestamp)) newArray.push(newItem);
             }
         }
 
@@ -176,12 +169,9 @@ class Home extends Component {
     onItemAddedRealTime(record) {
         const data = record.val();
         const item = data.value;
-        const timestamp = data.timestamp;
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        const now = Date.now();
-
-        let newItem = [new Date(timestamp), item];
+        let newItem = [new Date(data.timestamp * 1000), item];
         let lastItem;
 
         if (currentItems > 0) {
@@ -195,9 +185,9 @@ class Home extends Component {
         }
 
         // Is old?
-        if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
+        if (moment.range(newItem[0], Date.now()).diff('seconds', false) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
-        else if (lastItem && isAfter(lastItem[0], newItem[0])) return;
+        else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
 
         if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
@@ -243,7 +233,7 @@ class Home extends Component {
     onDateRangeModalOkButtonClick() {
         const range = Object.assign({}, this.state.dateRange);
 
-        this.setState({ showDateRangeModal: false });
+        this.setState({ showDateRangeModal: false, loading: true });
 
         if (range.start.isSame(range.end)) range.end.add(1, 'days');
 
@@ -256,6 +246,8 @@ class Home extends Component {
                 const results = records.val();
 
                 if (results) this.onItems(results);
+
+                this.setState({ loading: false });
             });
     }
 
@@ -385,13 +377,28 @@ class Home extends Component {
                 marginTop: '3rem'
             },
             modal: {
+                height: '100%',
                 background: 'rgba(0, 0, 0, 0.5)',
-                transition: 'opacity 0.3s ease-in'
+                transition: 'opacity 0.3s ease-in',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
             },
-            modalContainer: {
+            dateRangeModalContainer: {
                 padding: '0rem',
                 background: 'none',
-                width: '315px'
+                width: '315px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            },
+            spinnerModalContainer: {
+                padding: '0rem',
+                background: 'none',
+                width: '75px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
             },
             card: {
                 padding: '0rem',
@@ -439,11 +446,23 @@ class Home extends Component {
                 />
               </div>
               <Modal
+                show={this.state.loading}
+                transitionSpeed={100}
+                closeOnOuterClick={false}
+                containerStyle={style.dateRangeModalContainer}
+                style={style.modal}
+              >
+                <CircularProgress
+                  color={primaryColor}
+                  size={75}
+                />
+              </Modal>
+              <Modal
                 show={this.state.showDateRangeModal}
                 onClose={this.onDateRangeModalClose.bind(this)}
-                transitionSpeed={300}
+                transitionSpeed={100}
                 closeOnOuterClick={false}
-                containerStyle={style.modalContainer}
+                containerStyle={style.spinnerModalContainer}
                 style={style.modal}
               >
                 <Card style={style.card} className="card">
