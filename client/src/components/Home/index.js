@@ -151,6 +151,15 @@ class Home extends Component {
             .on('value', this.onFirebaseConnectionStateChanged.bind(this));
     }
 
+    onFirebaseConnectionStateChanged(connected) {
+        if (connected.val()) {
+            this._connections++;
+
+            this.setState({ connected: true });
+        }
+        else if (this._connections > 0) this.setState({ connected: false });
+    }
+
     onItems(records) {
         const newArray = [];
         let newItem;
@@ -169,15 +178,6 @@ class Home extends Component {
         }
 
         this.setChartData(data, newItem, newArray);
-    }
-
-    onFirebaseConnectionStateChanged(connected) {
-        if (connected.val()) {
-            this._connections++;
-
-            this.setState({ connected: true });
-        }
-        else if (this._connections > 0) this.setState({ connected: false });
     }
 
     onItemAddedRealTime(record) {
@@ -249,9 +249,10 @@ class Home extends Component {
     onDateRangeModalOkButtonClick() {
         const range = Object.assign({}, this.state.dateRange);
 
-        this.setState({ showDateRangeModal: false, loading: true });
-
+        if (!range.end || !range.start) return;
         if (range.start.isSame(range.end)) range.end.add(1, 'days');
+
+        this.setState({ showDateRangeModal: false, loading: true });
 
         this._database.ref(`${this._device}/activity`)
             .orderByChild('timestamp')
