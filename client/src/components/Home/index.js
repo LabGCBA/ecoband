@@ -162,15 +162,14 @@ class Home extends Component {
 
     onItems(records) {
         const newArray = [];
+        let item;
         let newItem;
         let data;
 
         for (const key in records) {
             if (records.hasOwnProperty(key)) {
                 data = records[key];
-
-                const item = data.value;
-
+                item = data.value;
                 newItem = [new Date(data.timestamp * 1000), item];
 
                 if (this.state.dateRange.contains(data.timestamp)) newArray.push(newItem);
