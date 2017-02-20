@@ -163,7 +163,7 @@ class Home extends Component {
                 const item = data.value;
                 const timestamp = moment(data.timestamp);
 
-                newItem = [timestamp.toDate(), item];
+                newItem = [new Date(timestamp), item];
 
                 if (isInRange(timestamp, this.state.dateRange.start, this.state.dateRange.end)) newArray.push(newItem);
             }
@@ -175,12 +175,11 @@ class Home extends Component {
     onItemAddedRealTime(record) {
         const data = record.val();
         const item = data.value;
-        const timestamp = moment(data.timestamp);
+        const timestamp = data.timestamp;
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        const now = moment(Date.now());
-        let newItem = [timestamp.toDate(), item];
-        const maxPeriod = moment.range(newItem[0], now);
+        const now = Date.now();
+        let newItem = [new Date(timestamp), item];
         let lastItem;
 
         if (currentItems > 0) {
