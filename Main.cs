@@ -483,7 +483,7 @@ namespace EcoBand {
             record = new Dictionary<string, object>() {
                 { "type", type },
                 { "value", measurement },
-                { "timestamp", DateTimeOffset.Now.ToUnixTimeSeconds() }
+                { "timestamp", DateTimeOffset.Now.ToUnixTimeMilliseconds() }
             };
 
             try {
