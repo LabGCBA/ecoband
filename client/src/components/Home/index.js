@@ -239,7 +239,7 @@ class Home extends Component {
     }
 
     onDateRangeButtonClick() {
-        this.clearData();
+        if (this.state.realTime) this.clearData();
         this.setState({ realTime: false, showDateRangeModal: true });
     }
 
@@ -251,11 +251,10 @@ class Home extends Component {
     }
 
     onDateRangeModalOkButtonClick() {
-        const range = Object.assign({}, this.state.dateRange);
+        const range = moment.range(this.state.dateRange.start, this.state.dateRange.end);
 
         if (!range.end || !range.start) return;
 
-        range.end.add(1, 'days');
         this.setState({ showDateRangeModal: false, loading: true });
 
         this._database.ref(`${this._device}/activity`)
@@ -274,6 +273,10 @@ class Home extends Component {
 
     onDateRangeSelected(range) {
         if (this.state.dateRange || !this.state.dateRange || !(this.state.dateRange.isEqual(range))) {
+            range.end.add(23, 'hours');
+            range.end.add(59, 'minutes');
+            range.end.add(59, 'seconds');
+
             this.setState({ dateRange: range });
         }
     }
