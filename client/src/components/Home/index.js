@@ -175,12 +175,11 @@ class Home extends Component {
     onItemAddedRealTime(record) {
         const data = record.val();
         const item = data.value;
-        const timestamp = moment(data.timestamp);
+        const timestamp = data.timestamp;
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        const now = moment(Date.now());
+        const now = Date.now();
         let newItem = [timestamp.toDate(), item];
-        const maxPeriod = moment.range(newItem[0], now);
         let lastItem;
 
         if (currentItems > 0) {
