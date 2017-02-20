@@ -1,11 +1,7 @@
-import { Card, CardActions, CardHeader } from 'material-ui/Card';
-import { CircularProgress, FlatButton } from 'material-ui';
 import React, { Component } from 'react';
 
 import Charts from '../Charts';
-import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
-import Modal from 'simple-react-modal';
 import Modals from '../Modals';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -389,38 +385,6 @@ class Home extends Component {
             main: {
                 width: '75%',
                 fontWeight: 'bold'
-            },
-            content: {
-                marginTop: '3rem'
-            },
-            modal: {
-                height: '100%',
-                background: 'rgba(0, 0, 0, 0.5)',
-                transition: 'opacity 0.3s ease-in',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            },
-            dateRangeModalContainer: {
-                padding: '0rem',
-                background: 'none',
-                width: '315px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            },
-            spinnerModalContainer: {
-                padding: '0rem',
-                background: 'none',
-                width: '75px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            },
-            card: {
-                padding: '0rem',
-                borderRadius: '0.35rem',
-                background: '#2C2734'
             }
         };
 
