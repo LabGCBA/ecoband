@@ -230,7 +230,7 @@ class Home extends Component {
         this.setState({ realTime: true });
 
         this._database.ref(`${this._device}/activity`)
-            .limitToLast(1)
+            .limitToLast(this._realTimeItems)
             .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
