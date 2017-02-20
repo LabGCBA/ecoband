@@ -129,17 +129,18 @@ class Home extends Component {
         this._device = 'C8:0F:10:80:DA:BE';
         this._database = Firebase.database();
         this._realTimeItems = 25;
-        this._stepsToShow = 25;
         this.state = {
             beatsPerMinute: {
                 list: [],
                 last: new Date(),
-                limit: 25
+                limit: 25,
+                loading: false
             },
             stepsPerMinute: {
                 list: [],
                 last: new Date(),
-                limit: 25
+                limit: 25,
+                loading: false
             },
             realTime: true,
             showDateRangeModal: false,
