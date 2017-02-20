@@ -2,12 +2,12 @@ import { Card, CardActions, CardHeader } from 'material-ui/Card';
 import { CircularProgress, FlatButton } from 'material-ui';
 import React, { Component } from 'react';
 
+import Charts from '../Charts';
 import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
 import Modal from 'simple-react-modal';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import ReactEcharts from 'echarts-for-react';
 import Toolbar from '../Toolbar';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -433,16 +433,17 @@ class Home extends Component {
                 primaryColor={primaryColor}
                 secondaryColor={secondaryColor}
               />
-              <div style={style.content}>
-                <ReactEcharts
-                  option={this.getBeatsChartOptions()}
-                  onChartReady={this.singleCurry.bind(this)(this.onChartReady, 'beatsPerMinute')}
-                />
-                <ReactEcharts
-                  option={this.getStepsChartOptions()}
-                  onChartReady={this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')}
-                />
-              </div>
+              <Charts
+                style={style.content}
+                options={[
+                    this.getBeatsChartOptions(),
+                    this.getStepsChartOptions()
+                ]}
+                onChartReadyCallbacks={[
+                    this.singleCurry.bind(this)(this.onChartReady, 'beatsPerMinute'),
+                    this.singleCurry.bind(this)(this.onChartReady, 'stepsPerMinute')
+                ]}
+              />
               <Modal
                 show={this.state.loading}
                 transitionSpeed={100}
