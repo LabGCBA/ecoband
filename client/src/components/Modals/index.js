@@ -37,7 +37,7 @@ class Modals extends PureComponent {
         return (
           <div>
             <Modal
-              show={this.props.show.spinner}
+              show={this.props.values.spinner.show}
               transitionSpeed={100}
               closeOnOuterClick={false}
               containerStyle={style.container}
@@ -49,8 +49,8 @@ class Modals extends PureComponent {
               />
             </Modal>
             <Modal
-              show={this.props.show.dateRange}
-              onClose={this.props.onClose.dateRange}
+              show={this.props.values.dateRange.show}
+              onClose={this.props.events.dateRange.onClose}
               transitionSpeed={100}
               closeOnOuterClick={false}
               containerStyle={style.container}
@@ -63,27 +63,27 @@ class Modals extends PureComponent {
                   numberOfCalendars={1}
                   selectionType="range"
                   showLegend={false}
-                  onSelect={this.props.onSelect.dateRange}
-                  value={this.props.values.dateRange}
+                  onSelect={this.props.events.dateRange.onSelect}
+                  value={this.props.values.dateRange.range}
                   maximumDate={moment().toDate()}
                   singleDateRange
                 />
                 <CardActions>
                   <FlatButton
                     label="Cancelar"
-                    onClick={this.props.onCancelButtonClick.dateRange}
+                    onClick={this.props.events.dateRange.onCancelButtonClick}
                     hoverColor={this.props.primaryColor}
                   />
                   <FlatButton
                     label="Aceptar"
-                    onClick={this.props.onOkButtonClick.dateRange}
+                    onClick={this.props.events.dateRange.onOkButtonClick}
                     hoverColor={this.props.primaryColor}
                   />
                 </CardActions>
               </Card>
             </Modal>
             <Modal
-              show={this.props.show.connection}
+              show={this.props.values.connection.show}
               transitionSpeed={100}
               closeOnOuterClick={false}
               containerStyle={style.container}
@@ -99,13 +99,9 @@ class Modals extends PureComponent {
 }
 
 Modals.propTypes = {
-    show: PropTypes.object.isRequired,
     primaryColor: PropTypes.string.isRequired,
-    values: PropTypes.object,
-    onSelect: PropTypes.object,
-    onClose: PropTypes.object,
-    onCancelButtonClick: PropTypes.object,
-    onOkButtonClick: PropTypes.object
+    events: PropTypes.object.isRequired,
+    values: PropTypes.object
 };
 
 export default Modals;

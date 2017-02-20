@@ -385,6 +385,9 @@ class Home extends Component {
             main: {
                 width: '75%',
                 fontWeight: 'bold'
+            },
+            content: {
+                marginTop: '3rem'
             }
         };
 
@@ -410,25 +413,25 @@ class Home extends Component {
                 }}
               />
               <Modals
-                show={{
-                    spinner: this.state.loading,
-                    dateRange: this.state.showDateRangeModal,
-                    connection: !this.state.connected
-                }}
                 values={{
-                    dateRange: this.state.dateRange
+                    spinner: {
+                        show: this.state.loading
+                    },
+                    dateRange: {
+                        range: this.state.dateRange,
+                        show: this.state.showDateRangeModal
+                    },
+                    connection: {
+                        show: !this.state.connected
+                    }
                 }}
-                onSelect={{
-                    dateRange: this.onDateRangeSelected.bind(this)
-                }}
-                onClose={{
-                    dateRange: this.onDateRangeModalClose.bind(this)
-                }}
-                onCancelButtonClick={{
-                    dateRange: this.onDateRangeModalCancelButtonClick.bind(this)
-                }}
-                onOkButtonClick={{
-                    dateRange: this.onDateRangeModalOkButtonClick.bind(this)
+                events={{
+                    dateRange: {
+                        onSelect: this.onDateRangeSelected.bind(this),
+                        onClose: this.onDateRangeModalClose.bind(this),
+                        onCancelButtonClick: this.onDateRangeModalCancelButtonClick.bind(this),
+                        onOkButtonClick: this.onDateRangeModalOkButtonClick.bind(this)
+                    }
                 }}
                 primaryColor={primaryColor}
               />
