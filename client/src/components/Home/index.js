@@ -2,7 +2,6 @@ import { Card, CardActions, CardHeader } from 'material-ui/Card';
 import { CircularProgress, FlatButton, IconButton, Toggle } from 'material-ui';
 import React, { Component } from 'react';
 
-import DateRangeIcon from 'material-ui/svg-icons/action/date-range';
 import DateRangePicker from 'react-daterange-picker';
 import Firebase from 'firebase';
 import Modal from 'simple-react-modal';
@@ -10,7 +9,6 @@ import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
 import Toolbar from '../Toolbar';
-import UpdateIcon from 'material-ui/svg-icons/action/update';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -370,21 +368,6 @@ class Home extends Component {
                 width: '75%',
                 fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif',
                 fontWeight: 'bold'
-            },
-            toolbar: {
-                boxShadow: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.22)',
-                backgroundColor: '#27232F'
-            },
-            toolbarGroup: {
-                width: '100%',
-                display: 'block'
-            },
-            toolbarTitle: {
-                color: secondaryColor
-            },
-            iconButton: {
-                float: 'right',
-                marginTop: '0.25rem'
             },
             content: {
                 marginTop: '3rem'
