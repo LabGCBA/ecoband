@@ -133,12 +133,12 @@ class Home extends Component {
         this.state = {
             beatsPerMinute: {
                 list: [],
-                last: moment(),
+                last: new Date(),
                 limit: 25
             },
             stepsPerMinute: {
                 list: [],
-                last: moment(),
+                last: new Date(),
                 limit: 25
             },
             realTime: true,
