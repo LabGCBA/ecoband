@@ -138,12 +138,15 @@ class Home extends Component {
             realTime: true,
             loading: false,
             showDateRangeModal: false,
-            dateRange: null
+            dateRange: null,
+            connected: false
         };
 
         this._database.ref(`${this._device}/activity`)
             .limitToLast(1)
             .on('child_added', this.onItemAddedRealTime.bind(this));
+        this._database.ref.child('.info/connected')
+            .on('value', this.onFirebaseConnectionStateChanged.bind(this));
     }
 
     onItems(records) {
@@ -164,6 +167,11 @@ class Home extends Component {
         }
 
         this.setChartData(data, newItem, newArray);
+    }
+
+    onFirebaseConnectionStateChanged(connected) {
+        if (connected.val()) this.setState({ connected: true });
+        else this.setState({ connected: false });
     }
 
     onItemAddedRealTime(record) {
@@ -490,6 +498,17 @@ class Home extends Component {
                       hoverColor={primaryColor}
                     />
                   </CardActions>
+                </Card>
+              </Modal>
+              <Modal
+                show={!this.state.connected}
+                transitionSpeed={100}
+                closeOnOuterClick={false}
+                containerStyle={style.dateRangeModalContainer}
+                style={style.modal}
+              >
+                <Card style={style.card} className="card">
+                  <CardHeader title="Sin conexión a internet" />
                 </Card>
               </Modal>
             </section>
