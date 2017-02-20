@@ -116,6 +116,7 @@ class Home extends Component {
 
         this._device = 'C8:0F:10:80:DA:BE';
         this._realTimeItems = 25;
+        this._connections = 0;
         this.state = {
             beatsPerMinute: {
                 list: [],
@@ -171,8 +172,12 @@ class Home extends Component {
     }
 
     onFirebaseConnectionStateChanged(connected) {
-        if (connected.val()) this.setState({ connected: true });
-        else this.setState({ connected: false });
+        if (connected.val()) {
+            this._connections++;
+
+            this.setState({ connected: true });
+        }
+        else if (this._connections > 0) this.setState({ connected: false });
     }
 
     onItemAddedRealTime(record) {
