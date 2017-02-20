@@ -170,9 +170,9 @@ class Home extends Component {
             if (records.hasOwnProperty(key)) {
                 data = records[key];
                 item = data.value;
-                newItem = [new Date(data.timestamp * 1000), item];
+                newItem = [new Date(data.timestamp), item];
 
-                if (this.state.dateRange.contains(data.timestamp)) newArray.push(newItem);
+                if (this.state.dateRange.contains(newItem[0])) newArray.push(newItem);
             }
         }
 
@@ -184,7 +184,7 @@ class Home extends Component {
         const item = data.value;
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
-        let newItem = [new Date(data.timestamp * 1000), item];
+        let newItem = [new Date(data.timestamp), item];
         let lastItem;
 
         if (!this.state.realTime) return;
@@ -249,8 +249,8 @@ class Home extends Component {
         const range = Object.assign({}, this.state.dateRange);
 
         if (!range.end || !range.start) return;
-        if (range.start.isSame(range.end)) range.end.add(1, 'days');
 
+        range.end.add(1, 'days');
         this.setState({ showDateRangeModal: false, loading: true });
 
         this._database.ref(`${this._device}/activity`)
