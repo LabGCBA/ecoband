@@ -161,7 +161,7 @@ class Home extends Component {
     }
 
     onItems(records) {
-        const newArray = [];
+        const results = {};
         let item;
         let newItem;
         let data;
@@ -171,12 +171,17 @@ class Home extends Component {
                 data = records[key];
                 item = data.value;
                 newItem = [new Date(data.timestamp), item];
+                data.type = data.type.trim();
 
-                if (this.state.dateRange.contains(newItem[0])) newArray.push(newItem);
+                if (this.state.dateRange.contains(newItem[0])) {
+                    if (!results[data.type]) results[data.type] = [];
+
+                    results[data.type].push(newItem);
+                }
             }
         }
 
-        this.setChartData(data, newItem, newArray);
+        this.setChartsData(results);
     }
 
     onItemAddedRealTime(record) {
@@ -207,7 +212,7 @@ class Home extends Component {
         if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
         newArray.push(newItem);
-        this.setChartData(data, newItem, newArray);
+        this.setChartData(data.type, newItem, newArray);
     }
 
     onChartReady(echartsInstance, type) {
@@ -347,13 +352,23 @@ class Home extends Component {
         };
     }
 
-    setChartData(data, newItem, newArray) {
+    setChartsData(data) {
+        const keys = Object.getOwnPropertyNames(data);
+
+        for (const type of keys) {
+            const lastItem = data[type][data[type].length - 1];
+
+            this.setChartData(type, lastItem, data[type]);
+        }
+    }
+
+    setChartData(type, newItem, newArray) {
         const newState = Object.assign({}, this.state);
 
-        newState[data.type].list = newArray;
-        newState[data.type].last = newItem[0];
+        newState[type].list = newArray;
+        newState[type].last = newItem[0];
 
-        this.setState({ [data.type]: newState[data.type] });
+        this.setState({ [type]: newState[type] });
     }
 
     setLimit(number) {
