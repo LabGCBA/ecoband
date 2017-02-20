@@ -174,6 +174,8 @@ class Home extends Component {
         let newItem = [new Date(data.timestamp * 1000), item];
         let lastItem;
 
+        if (!this.state.realTime) return;
+
         if (currentItems > 0) {
             for (let i = currentItems - 1; i >= 0; i--) {
                 if (this.state[data.type].list[i][0]) {
