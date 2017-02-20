@@ -239,22 +239,27 @@ class Home extends Component {
     }
 
     onDateRangeModalOkButtonClick() {
+        const range = Object.assign({}, this.state.dateRange);
+
         this.setState({ showDateRangeModal: false });
+
+        if (range.start.isSame(range.end)) range.end.add(1, 'days');
 
         this._database.ref(`${this._device}/activity`)
             .orderByChild('timestamp')
-            .startAt(this.state.dateRange.start.valueOf())
-            .endAt(this.state.dateRange.end.valueOf())
+            .startAt(range.start.valueOf())
+            .endAt(range.end.valueOf())
             .once('value')
             .then((records) => {
                 const results = records.val();
+
+                console.info(results);
 
                 if (results) this.onItems(results);
             });
     }
 
     onDateRangeSelected(range) {
-        if (range.start.isSame(range.end)) range.end.add(1, 'seconds');
         if (this.state.dateRange || !this.state.dateRange || !(this.state.dateRange.isEqual(range))) {
             this.setState({ dateRange: range });
         }
