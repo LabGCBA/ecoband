@@ -13,43 +13,48 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ReactEcharts from 'echarts-for-react';
 import Toggle from 'material-ui/Toggle';
 import UpdateIcon from 'material-ui/svg-icons/action/update';
+import differenceInSeconds from 'date-fns/difference_in_seconds';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import isAfter from 'date-fns/is_after';
+import isInRange from 'date-fns/is_within_range';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import styles from './styles.scss';
 
 const moment = extendMoment(Moment);
+const primaryColor = '#FF5D9E';
+const secondaryColor = '#F0EAFF';
 
 const textStyle = {
-    color: '#F0EAFF',
+    color: secondaryColor,
     fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
 };
 
 const lineStyle = {
     normal: {
-        color: '#FF5D9E'
+        color: primaryColor
     },
     emphasis: {
-        color: '#F0EAFF'
+        color: secondaryColor
     }
 };
 
 const itemStyle = {
     normal: {
-        color: '#FF5D9E',
-        borderColor: '#FF5D9E'
+        color: primaryColor,
+        borderColor: primaryColor
     },
     emphasis: {
-        color: '#F0EAFF',
-        borderColor: '#F0EAFF'
+        color: secondaryColor,
+        borderColor: secondaryColor
     }
 };
 
 const baseChartOptions = {
     animation: false,
     color: [
-        '#FF5D9E', '#FF5D9E', '#FF5D9E', '#d48265', '#91c7ae',
+        primaryColor, primaryColor, primaryColor, secondaryColor, secondaryColor,
         '#749f83', '#ca8622', '#bda29a', '#6e7074', '#546570',
         '#c4ccd3'
     ],
@@ -69,10 +74,10 @@ const baseChartOptions = {
         },
         iconStyle: {
             normal: {
-                borderColor: '#F0EAFF'
+                borderColor: secondaryColor
             },
             emphasis: {
-                borderColor: '#FF5D9E'
+                borderColor: primaryColor
             }
         }
     },
@@ -125,8 +130,6 @@ class Home extends Component {
         this._database = Firebase.database();
         this._realTimeItems = 25;
         this._stepsToShow = 25;
-        this._primaryColor = '#FF5D9E';
-        this._secondaryColor = '#F0EAFF';
         this.state = {
             beatsPerMinute: {
                 list: [],
@@ -162,7 +165,7 @@ class Home extends Component {
 
                 newItem = [timestamp.toDate(), item];
 
-                if (this.state.dateRange.contains(timestamp)) newArray.push(newItem);
+                if (isInRange(timestamp, this.state.dateRange.start, this.state.dateRange.end)) newArray.push(newItem);
             }
         }
 
@@ -173,13 +176,12 @@ class Home extends Component {
         const data = record.val();
         const item = data.value;
         const timestamp = moment(data.timestamp);
-        const now = Date.now();
         const newArray = [...this.state[data.type].list];
         const currentItems = this.state[data.type].list.length;
+        const now = moment(Date.now());
         let newItem = [timestamp.toDate(), item];
+        const maxPeriod = moment.range(newItem[0], now);
         let lastItem;
-
-        console.log(data);
 
         if (currentItems > 0) {
             for (let i = currentItems - 1; i >= 0; i--) {
@@ -192,9 +194,9 @@ class Home extends Component {
         }
 
         // Is old?
-        if (moment.range(newItem[0], now).diff('seconds', false) > 70) newItem = [null, null];
+        if (differenceInSeconds(now, newItem[0]) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
-        else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
+        else if (lastItem && isAfter(lastItem[0], newItem[0])) return;
 
         if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
 
@@ -248,8 +250,6 @@ class Home extends Component {
             .then((records) => {
                 const results = records.val();
 
-                console.log(results);
-
                 if (results) this.onItems(results);
             });
     }
@@ -275,8 +275,12 @@ class Home extends Component {
             },
             dataZoom: {
                 show: !this.state.realTime,
-                start: 75,
-                end: 100
+                showDetail: false,
+                showDataShadow: false,
+                handleStyle: {
+                    color: secondaryColor,
+                    borderColor: secondaryColor
+                }
             },
             series: [
                 {
@@ -302,8 +306,12 @@ class Home extends Component {
             },
             dataZoom: {
                 show: !this.state.realTime,
-                start: 75,
-                end: 100
+                showDetail: false,
+                showDataShadow: false,
+                handleStyle: {
+                    color: secondaryColor,
+                    borderColor: secondaryColor
+                }
             },
             series: [
                 {
@@ -363,7 +371,7 @@ class Home extends Component {
                 display: 'block'
             },
             toolbarTitle: {
-                color: '#F0EAFF'
+                color: secondaryColor
             },
             iconButton: {
                 float: 'right',
@@ -401,7 +409,7 @@ class Home extends Component {
                     onClick={this.onDateRangeButtonClick.bind(this)}
                   >
                     <DateRangeIcon
-                      color={this.state.realTime ? this._secondaryColor : this._primaryColor}
+                      color={this.state.realTime ? secondaryColor : primaryColor}
                     />
                   </IconButton>
                   <IconButton
@@ -411,7 +419,7 @@ class Home extends Component {
                     onClick={this.onRealTimeButtonClick.bind(this)}
                   >
                     <UpdateIcon
-                      color={this.state.realTime ? this._primaryColor : this._secondaryColor}
+                      color={this.state.realTime ? primaryColor : secondaryColor}
                     />
                   </IconButton>
                 </ToolbarGroup>
