@@ -205,7 +205,7 @@ class Home extends Component {
         }
 
         // Is old?
-        if (moment.range(newItem[0], Date.now()).diff('seconds', false) > 70) newItem = [null, null];
+        if (moment.range(newItem[0], moment().toDate()).diff('seconds', false) > 70) newItem = [null, null];
         // Is an outlier? (is the new item older that the last one?)
         else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
 
@@ -386,7 +386,6 @@ class Home extends Component {
         const style = {
             main: {
                 width: '75%',
-                fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif',
                 fontWeight: 'bold'
             },
             content: {
@@ -472,6 +471,7 @@ class Home extends Component {
                     showLegend={false}
                     onSelect={this.onDateRangeSelected.bind(this)}
                     value={this.state.dateRange}
+                    maximumDate={moment().toDate()}
                     singleDateRange
                   />
                   <CardActions>
