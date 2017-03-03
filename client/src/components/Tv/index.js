@@ -298,7 +298,7 @@ class Tv extends Component {
             content: {
                 width: '100%',
                 height: '100vh',
-                marginTop: '10px'
+                marginTop: '5px'
             },
             chart: {
                 height: '50vh'
