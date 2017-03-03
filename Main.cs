@@ -34,8 +34,8 @@ namespace EcoBand {
 
     public class Main : AppCompatActivity, ILocationListener {
         public Main() {
-            _firebase = new FirebaseClient("https://demo.firebaseio.com/");
-            _firebaseTokenGenerator = new TokenGenerator("demo");
+            _firebase = new FirebaseClient("https://ecoband-5e79f.firebaseio.com/");
+            _firebaseTokenGenerator = new TokenGenerator("AIzaSyCC_CjT8LY2ZiR2VhU5ufRsmboYw7USJiA");
             _beatsBuffer = new Queue<int>(7);
 
             _ble.StateChanged += OnStateChanged;
