@@ -243,8 +243,8 @@ namespace EcoBand {
 
             if (_beatsBuffer.Count > 0) {
                 average = _beatsBuffer.Average();
-                upperLimit = average * 1.5;
-                lowerLimit = average / 2f;
+                upperLimit = average * 1.3f;
+                lowerLimit = average / 1.3f;
 
                 if (e.Measure > upperLimit || e.Measure < lowerLimit) return;
             }
