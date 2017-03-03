@@ -110,7 +110,6 @@ class Tv extends Component {
                 last: moment(),
                 limit: 25
             },
-            realTime: true,
             loading: false,
             connected: true
         };
@@ -147,8 +146,6 @@ class Tv extends Component {
         const currentItems = this.state[data.type].list.length;
         let newItem = [new Date(data.timestamp), item];
         let lastItem;
-
-        if (!this.state.realTime) return;
 
         if (currentItems > 0) {
             for (let i = currentItems - 1; i >= 0; i--) {
@@ -198,19 +195,10 @@ class Tv extends Component {
                 x: 'center',
                 textStyle
             },
-            dataZoom: {
-                show: !this.state.realTime,
-                showDetail: false,
-                showDataShadow: false,
-                handleStyle: {
-                    color: secondaryColor,
-                    borderColor: secondaryColor
-                }
-            },
             series: [
                 {
                     name: 'Pulsaciones',
-                    type: this.state.realTime ? 'line' : 'scatter',
+                    type: 'line',
                     data: this.state.beatsPerMinute.list,
                     connectNulls: false,
                     symbolSize: 5,
@@ -230,19 +218,10 @@ class Tv extends Component {
                 x: 'center',
                 textStyle
             },
-            dataZoom: {
-                show: !this.state.realTime,
-                showDetail: false,
-                showDataShadow: false,
-                handleStyle: {
-                    color: secondaryColor,
-                    borderColor: secondaryColor
-                }
-            },
             series: [
                 {
                     name: 'Pulsaciones',
-                    type: this.state.realTime ? 'line' : 'scatter',
+                    type: 'line',
                     data: this.state.stepsPerMinute.list,
                     connectNulls: false,
                     symbolSize: 5,
