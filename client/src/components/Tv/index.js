@@ -30,7 +30,8 @@ const titleStyle = {
 
 const lineStyle = {
     normal: {
-        color: primaryColor
+        color: primaryColor,
+        width: 3
     },
     emphasis: {
         color: secondaryColor
@@ -107,16 +108,18 @@ class Tv extends Component {
         super(props);
 
         this._device = 'C8:0F:10:80:DA:BE';
-        this._realTimeItems = 25;
+        this._items = 25;
         this._connections = 0;
         this.state = {
             beatsPerMinute: {
                 list: [],
+                latest: 0,
                 last: moment(),
                 limit: 25
             },
             stepsPerMinute: {
                 list: [],
+                latest: 0,
                 last: moment(),
                 limit: 25
             },
@@ -172,7 +175,7 @@ class Tv extends Component {
         // Is an outlier? (is the new item older that the last one?)
         else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
 
-        if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
+        if (newArray.length >= this._items) newArray.shift();
 
         newArray.push(newItem);
         this.setChartData(data.type, newItem, newArray);
@@ -263,6 +266,8 @@ class Tv extends Component {
     setChartData(type, newItem, newArray) {
         const newState = Object.assign({}, this.state);
 
+        if (newItem[1] > 0) newState[type].latest = newItem[1];
+
         newState[type].list = newArray;
         newState[type].last = newItem[0];
 
@@ -286,7 +291,8 @@ class Tv extends Component {
                 height: '100vh',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-start'
+                justifyContent: 'flex-start',
+                overflow: 'hidden'
             },
             content: {
                 width: '90%',
@@ -300,7 +306,12 @@ class Tv extends Component {
         return (
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
             <section id="main" style={style.main}>
-              <Sidebar primaryColor={primaryColor} secondaryColor={secondaryColor} />
+              <Sidebar
+                primaryColor={primaryColor}
+                secondaryColor={secondaryColor}
+                latestBeat={this.state.beatsPerMinute.latest}
+                latestStep={this.state.stepsPerMinute.latest}
+              />
               <Charts
                 containerStyle={style.content}
                 style={style.chart}

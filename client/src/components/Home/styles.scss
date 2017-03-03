@@ -7,7 +7,7 @@ $ns: DateRangePicker !default;
 
 .card {
     & * {
-        color: #F0EAFF !important;
+        color: $textColor !important;
         text-shadow: none;
     }
 

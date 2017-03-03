@@ -1,0 +1,17 @@
+@import '../../shared-styles/variables';
+
+.counter {
+    font-family: 'Rubik', 'Helvetica Neue', Helvetica, Tahoma, 'Open Sans', sans-serif;
+    font-size: 2rem;
+    font-weight: 300;
+    // color: $backgroundColor;
+    color: $accentColor;
+
+    &-beats {
+        margin-bottom: 10%;
+    }
+
+    &-steps {
+        margin-top: 10%;
+    }
+}

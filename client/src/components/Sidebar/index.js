@@ -1,6 +1,7 @@
 import React, { PropTypes, PureComponent } from 'react';
 
 import HeartIcon from '../HeartIcon';
+import styles from './styles.scss';
 
 class Sidebar extends PureComponent {
     render() {
@@ -23,14 +24,22 @@ class Sidebar extends PureComponent {
             }
         };
 
+        console.log(this.props.latestBeat);
+
         return (
           <div className="sidebar" style={style.sidebar}>
+            <span className="counter counter-beats">
+              {this.props.latestBeat}
+            </span>
             <HeartIcon
               width="59.8"
               height="143.65"
               primaryColor={this.props.primaryColor}
               secondaryColor={this.props.secondaryColor}
             />
+            <span className="counter counter-steps">
+              {this.props.latestStep}
+            </span>
           </div>
         );
     }
@@ -38,7 +47,9 @@ class Sidebar extends PureComponent {
 
 Sidebar.propTypes = {
     primaryColor: PropTypes.string.isRequired,
-    secondaryColor: PropTypes.string.isRequired
+    secondaryColor: PropTypes.string.isRequired,
+    latestBeat: PropTypes.number,
+    latestStep: PropTypes.number
 };
 
 export default Sidebar;

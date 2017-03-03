@@ -119,18 +119,16 @@ class Home extends Component {
         super(props);
 
         this._device = 'C8:0F:10:80:DA:BE';
-        this._realTimeItems = 25;
+        this._items = 25;
         this._connections = 0;
         this.state = {
             beatsPerMinute: {
                 list: [],
                 last: moment(),
-                limit: 25
             },
             stepsPerMinute: {
                 list: [],
                 last: moment(),
-                limit: 25
             },
             realTime: true,
             loading: false,
@@ -213,7 +211,7 @@ class Home extends Component {
         // Is an outlier? (is the new item older that the last one?)
         else if (lastItem && moment(lastItem[0]).isAfter(newItem[0])) return;
 
-        if ((newArray.length >= this.state[data.type].limit)) newArray.shift();
+        if (newArray.length >= this._items) newArray.shift();
 
         newArray.push(newItem);
         this.setChartData(data.type, newItem, newArray);
@@ -238,7 +236,7 @@ class Home extends Component {
         this.setState({ realTime: true });
 
         this._database.ref(`${this._device}/activity`)
-            .limitToLast(this._realTimeItems)
+            .limitToLast(this._items)
             .on('child_added', this.onItemAddedRealTime.bind(this));
     }
 
@@ -391,7 +389,8 @@ class Home extends Component {
         const style = {
             main: {
                 width: '75%',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                overflow: 'hidden'
             },
             content: {
                 marginTop: '1.5rem'
