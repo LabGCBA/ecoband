@@ -25,7 +25,7 @@ const titleStyle = {
     color: secondaryColor,
     fontFamily: '\'Rubik\', \'Helvetica Neue\', Helvetica, Arial, sans-serif',
     fontWeight: 400,
-    fontSize: 13
+    fontSize: 14
 };
 
 const lineStyle = {

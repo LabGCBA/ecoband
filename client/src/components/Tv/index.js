@@ -5,6 +5,7 @@ import Firebase from 'firebase';
 import Modals from '../Modals';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Sidebar from '../Sidebar';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -64,7 +65,9 @@ const baseChartOptions = {
         show: false
     },
     grid: {
-        show: false
+        show: false,
+        left: '5%',
+        right: '5%'
     },
     xAxis: [
         {
@@ -280,10 +283,13 @@ class Tv extends Component {
             main: {
                 fontWeight: 'bold',
                 width: '100%',
-                height: '100vh'
+                height: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyItems: 'flex-start'
             },
             content: {
-                width: '100%',
+                width: '90%',
                 height: '100vh'
             },
             chart: {
@@ -294,6 +300,7 @@ class Tv extends Component {
         return (
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
             <section id="main" style={style.main}>
+              <Sidebar primaryColor={primaryColor} secondaryColor={secondaryColor} />
               <Charts
                 containerStyle={style.content}
                 style={style.chart}
