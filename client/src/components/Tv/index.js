@@ -66,8 +66,8 @@ const baseChartOptions = {
     },
     grid: {
         show: false,
-        left: '5%',
-        right: '5%'
+        left: '4%',
+        right: '1%'
     },
     xAxis: [
         {
