@@ -68,7 +68,7 @@ const baseChartOptions = {
     grid: {
         show: false,
         left: '4%',
-        right: '1%'
+        right: '4%'
     },
     xAxis: [
         {
@@ -295,8 +295,9 @@ class Tv extends Component {
                 overflow: 'hidden'
             },
             content: {
-                width: '90%',
-                height: '100vh'
+                width: '100%',
+                height: '100vh',
+                marginTop: '10px'
             },
             chart: {
                 height: '50vh'
