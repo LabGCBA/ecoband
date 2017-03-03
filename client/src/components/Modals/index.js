@@ -75,6 +75,7 @@ class Modals extends PureComponent {
                   label="Aceptar"
                   onClick={this.props.events.dateRange.onOkButtonClick}
                   hoverColor={this.props.primaryColor}
+                  disabled={!(this.props.values.dateRange.range)}
                 />
               </CardActions>
             </Card>

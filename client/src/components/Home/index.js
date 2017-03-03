@@ -255,9 +255,9 @@ class Home extends Component {
     }
 
     onDateRangeModalOkButtonClick() {
-        const range = moment.range(this.state.dateRange.start, this.state.dateRange.end);
+        if (!this.state.dateRange.start || !this.state.dateRange.end) return;
 
-        if (!range.end || !range.start) return;
+        const range = moment.range(this.state.dateRange.start, this.state.dateRange.end);
 
         this.setState({ showDateRangeModal: false, loading: true });
 
