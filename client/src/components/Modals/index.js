@@ -100,8 +100,7 @@ class Modals extends PureComponent {
                 alignItems: 'center'
             },
             card: {
-                padding: '0rem',
-                borderRadius: '0.35rem',
+                padding: '0.75rem',
                 background: '#2C2734'
             }
         };

@@ -10,6 +10,10 @@ $ns: DateRangePicker !default;
     text-shadow: none;
 }
 
+.card > div > div:first-child {
+    margin-bottom: 0.5rem;
+}
+
 .#{$ns} {
     display: inline-block;
     margin-bottom: 10px;
@@ -31,7 +35,7 @@ $ns: DateRangePicker !default;
     }
 
     &__LegendItemColor {
-        border-radius: 50%;
+        // border-radius: 50%;
         display: inline-block;
         height: 14px;
         margin-right: 6px;
@@ -69,7 +73,7 @@ $ns: DateRangePicker !default;
 
         &:hover {
             background-color: #FF5D9E;
-            border-radius: $selection-radius;
+            // border-radius: $selection-radius;
         }
     }
 
@@ -223,16 +227,16 @@ $ns: DateRangePicker !default;
         }
 
         &--start {
-            border-bottom-left-radius: $selection-radius;
+            // border-bottom-left-radius: $selection-radius;
             border-right-width: 0;
-            border-top-left-radius: $selection-radius;
+            // border-top-left-radius: $selection-radius;
             left: $selection-margin;
         }
 
         &--end {
-            border-bottom-right-radius: $selection-radius;
+            // border-bottom-right-radius: $selection-radius;
             border-left-width: 0;
-            border-top-right-radius: $selection-radius;
+            // border-top-right-radius: $selection-radius;
             right: $selection-margin;
         }
 
@@ -242,7 +246,7 @@ $ns: DateRangePicker !default;
         }
 
         &--single {
-            border-radius: $selection-radius;
+            // border-radius: $selection-radius;
             left: $selection-margin;
             right: $selection-margin;
         }
@@ -266,16 +270,16 @@ $ns: DateRangePicker !default;
         }
 
         &--start {
-            border-bottom-left-radius: $selection-radius;
+            // border-bottom-left-radius: $selection-radius;
             border-right-width: 0;
-            border-top-left-radius: $selection-radius;
+            // border-top-left-radius: $selection-radius;
             left: $selection-margin;
         }
 
         &--end {
-            border-bottom-right-radius: $selection-radius;
+            // border-bottom-right-radius: $selection-radius;
             border-left-width: 0;
-            border-top-right-radius: $selection-radius;
+            // border-top-right-radius: $selection-radius;
             right: $selection-margin;
         }
 
@@ -287,7 +291,7 @@ $ns: DateRangePicker !default;
         &--single {
             background-color: #FF5D9E;
             border: 1px solid darken(#FF5D9E, 5);
-            border-radius: $selection-radius;
+            // border-radius: $selection-radius;
             left: $selection-margin;
             right: $selection-margin;
         }
@@ -317,4 +321,9 @@ $ns: DateRangePicker !default;
         width: 100%;
         z-index: 1;
     }
+}
+
+.#{ns} + div {
+    padding: 0px;
+    margin-top: 0.5rem;
 }
