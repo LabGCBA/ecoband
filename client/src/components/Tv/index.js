@@ -91,6 +91,7 @@ const baseChartOptions = {
         {
             type: 'value',
             max: 200,
+            offset: 1,
             axisLine: {
                 lineStyle: textStyle
             },
