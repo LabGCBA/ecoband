@@ -91,7 +91,7 @@ const baseChartOptions = {
     textStyle
 };
 
-class Home extends Component {
+class Tv extends Component {
     constructor(props) {
         injectTapEventPlugin();
         super(props);
@@ -331,8 +331,8 @@ class Home extends Component {
     }
 }
 
-Home.childContextTypes = {
+Tv.childContextTypes = {
     muiTheme: React.PropTypes.object
 };
 
-export default Home;
+export default Tv;
