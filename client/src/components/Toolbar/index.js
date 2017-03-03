@@ -18,15 +18,21 @@ class Toolbar extends PureComponent {
                 backgroundColor: '#27232F'
             },
             toolbarGroup: {
-                width: '100%',
-                display: 'block'
+                width: '100%'
             },
             toolbarTitle: {
                 color: this.props.secondaryColor
             },
+            buttons: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyItems: 'flex-end'
+            },
             iconButton: {
-                float: 'right',
-                marginTop: '0.25rem'
+                width: 'auto',
+                height: 'auto',
+                marginLeft: '5px',
+                paddingLeft: '3px'
             }
         };
 
@@ -34,7 +40,8 @@ class Toolbar extends PureComponent {
           <MaterialToolbar style={style.toolbar}>
             <ToolbarGroup style={style.toolbarGroup}>
               <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
-              <IconButton
+              <div style={style.buttons}>
+                <IconButton
                 style={style.iconButton}
                 tooltip="Rango de fechas"
                 tooltipPosition="bottom-center"
@@ -54,6 +61,7 @@ class Toolbar extends PureComponent {
                   color={this.props.realTime ? this.props.primaryColor : this.props.secondaryColor}
                 />
               </IconButton>
+              </div>
             </ToolbarGroup>
           </MaterialToolbar>
         );
