@@ -1,7 +1,7 @@
+import { IndexRoute, Route } from 'react-router/lib';
+
 import App from '../components/App';
-import IndexRoute from 'react-router/lib/IndexRoute';
 import React from 'react';
-import Route from 'react-router/lib/Route';
 
 // Webpack 2 supports ES2015 `System.import` by auto-
 // chunking assets. Check out the following for more:
@@ -10,7 +10,17 @@ import Route from 'react-router/lib/Route';
 const importHome = (nextState, cb) => {
     System.import('../components/Home')
       .then(module => cb(null, module.default))
-      .catch((e) => { throw e; });
+      .catch((e) => {
+          throw e;
+      });
+};
+
+const importTv = (nextState, cb) => {
+    System.import('../components/Tv')
+      .then(module => cb(null, module.default))
+      .catch((e) => {
+          throw e;
+      });
 };
 
 
@@ -19,6 +29,7 @@ const importHome = (nextState, cb) => {
 const routes = (
   <Route path="/" component={App}>
     <IndexRoute getComponent={importHome} />
+    <Route path="tv" getComponent={importTv} />
   </Route>
 );
 
@@ -26,7 +37,8 @@ const routes = (
 // routes so we need to require them here as a workaround.
 // https://github.com/gaearon/react-hot-loader/issues/288
 if (module.hot) {
-    require('../components/Home');    // eslint-disable-line global-require
+    require('../components/Home'); // eslint-disable-line global-require
+    require('../components/Tv'); // eslint-disable-line global-require
 }
 
 export default routes;
