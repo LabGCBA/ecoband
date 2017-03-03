@@ -1,12 +1,14 @@
 import React, { PropTypes, PureComponent } from 'react';
 
+import HeartIcon from '../HeartIcon';
+
 class Sidebar extends PureComponent {
     render() {
         const style = {
             sidebar: {
                 display: 'flex',
                 alignItems: 'center',
-                justifyItems: 'flex-start',
+                justifyContent: 'center',
                 flexDirection: 'column',
                 height: '100%',
                 width: '7%',
@@ -23,7 +25,12 @@ class Sidebar extends PureComponent {
 
         return (
           <div className="sidebar" style={style.sidebar}>
-            <p>Hola</p>
+            <HeartIcon
+              width="59.8"
+              height="143.65"
+              primaryColor={this.props.primaryColor}
+              secondaryColor={this.props.secondaryColor}
+            />
           </div>
         );
     }

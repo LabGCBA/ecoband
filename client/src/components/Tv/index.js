@@ -286,7 +286,7 @@ class Tv extends Component {
                 height: '100vh',
                 display: 'flex',
                 alignItems: 'center',
-                justifyItems: 'flex-start'
+                justifyContent: 'flex-start'
             },
             content: {
                 width: '90%',

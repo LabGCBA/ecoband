@@ -26,7 +26,7 @@ class Toolbar extends PureComponent {
             buttons: {
                 display: 'flex',
                 alignItems: 'center',
-                justifyItems: 'flex-end'
+                justifyContent: 'flex-end'
             },
             iconButton: {
                 width: 'auto',
