@@ -5,12 +5,16 @@ import ReactEcharts from 'echarts-for-react';
 class Charts extends PureComponent {
     render() {
         return (
-          <div style={this.props.style}>
+          <div className="charts" style={this.props.containerStyle}>
             <ReactEcharts
+              className="chart"
+              style={this.props.style}
               option={this.props.options.beats}
               onChartReady={this.props.onChartReady.steps}
             />
             <ReactEcharts
+              className="chart"
+              style={this.props.style}
               option={this.props.options.steps}
               onChartReady={this.props.onChartReady.steps}
             />
@@ -20,6 +24,7 @@ class Charts extends PureComponent {
 }
 
 Charts.propTypes = {
+    containerStyle: PropTypes.object,
     style: PropTypes.object,
     options: PropTypes.object,
     onChartReady: PropTypes.object

@@ -18,7 +18,14 @@ const secondaryColor = '#F0EAFF';
 
 const textStyle = {
     color: secondaryColor,
-    fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif'
+    fontFamily: '\'Roboto\', \'Helvetica Neue\', Helvetica, Arial, sans-serif'
+};
+
+const titleStyle = {
+    color: secondaryColor,
+    fontFamily: '\'Rubik\', \'Helvetica Neue\', Helvetica, Arial, sans-serif',
+    fontWeight: 400,
+    fontSize: 13
 };
 
 const lineStyle = {
@@ -287,8 +294,8 @@ class Home extends Component {
     getBeatsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pulsaciones por minuto',
-                textStyle
+                text: 'PULSACIONES POR MINUTO',
+                textStyle: titleStyle
             },
             dataZoom: {
                 show: !this.state.realTime,
@@ -318,8 +325,8 @@ class Home extends Component {
     getStepsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pasos por minuto',
-                textStyle
+                text: 'PASOS POR MINUTO',
+                textStyle: titleStyle
             },
             dataZoom: {
                 show: !this.state.realTime,
@@ -387,7 +394,10 @@ class Home extends Component {
                 fontWeight: 'bold'
             },
             content: {
-                marginTop: '3rem'
+                marginTop: '1.5rem'
+            },
+            chart: {
+                height: '45vh'
             }
         };
 
@@ -402,7 +412,8 @@ class Home extends Component {
                 secondaryColor={secondaryColor}
               />
               <Charts
-                style={style.content}
+                containerStyle={style.content}
+                style={style.chart}
                 options={{
                     beats: this.getBeatsChartOptions(),
                     steps: this.getStepsChartOptions()

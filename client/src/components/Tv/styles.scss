@@ -4,3 +4,13 @@
     color: #F0EAFF !important;
     text-shadow: none;
 }
+
+.charts {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    padding-top: 25px;
+    margin-bottom: -25px;
+    overflow: hidden;
+}

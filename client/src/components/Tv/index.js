@@ -17,7 +17,14 @@ const secondaryColor = '#F0EAFF';
 
 const textStyle = {
     color: secondaryColor,
-    fontFamily: 'Roboto, \'Helvetica Neue\', Helvetica, Arial, sans-serif'
+    fontFamily: '\'Roboto\', \'Helvetica Neue\', Helvetica, Arial, sans-serif'
+};
+
+const titleStyle = {
+    color: secondaryColor,
+    fontFamily: '\'Rubik\', \'Helvetica Neue\', Helvetica, Arial, sans-serif',
+    fontWeight: 400,
+    fontSize: 16
 };
 
 const lineStyle = {
@@ -191,9 +198,9 @@ class Tv extends Component {
     getBeatsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pulsaciones por minuto',
+                text: 'PULSACIONES POR MINUTO',
                 x: 'center',
-                textStyle
+                textStyle: titleStyle
             },
             series: [
                 {
@@ -214,9 +221,9 @@ class Tv extends Component {
     getStepsChartOptions() {
         const customOptions = {
             title: {
-                text: 'Pasos por minuto',
+                text: 'PASOS POR MINUTO',
                 x: 'center',
-                textStyle
+                textStyle: titleStyle
             },
             series: [
                 {
@@ -271,11 +278,16 @@ class Tv extends Component {
     render() {
         const style = {
             main: {
+                fontWeight: 'bold',
                 width: '100%',
-                fontWeight: 'bold'
+                height: '100vh'
             },
             content: {
-                marginTop: '3rem'
+                width: '100%',
+                height: '100vh'
+            },
+            chart: {
+                height: '50vh'
             }
         };
 
@@ -283,7 +295,8 @@ class Tv extends Component {
           <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
             <section id="main" style={style.main}>
               <Charts
-                style={style.content}
+                containerStyle={style.content}
+                style={style.chart}
                 options={{
                     beats: this.getBeatsChartOptions(),
                     steps: this.getStepsChartOptions()
