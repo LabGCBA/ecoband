@@ -36,31 +36,39 @@ class Toolbar extends PureComponent {
             }
         };
 
+        const realTimeButton = (
+          <IconButton
+            style={style.iconButton}
+            tooltip="Tiempo real"
+            tooltipPosition="bottom-center"
+            onClick={this.props.onRealTimeButtonClick}
+          >
+            <UpdateIcon
+              color={this.props.realTime ? this.props.primaryColor : this.props.secondaryColor}
+            />
+          </IconButton>
+        );
+
+        const dateRangeButton = (
+          <IconButton
+            style={style.iconButton}
+            tooltip="Rango de fechas"
+            tooltipPosition="bottom-center"
+            onClick={this.props.onDateRangeButtonClick}
+          >
+            <DateRangeIcon
+              color={this.props.realTime ? this.props.secondaryColor : this.props.primaryColor}
+            />
+          </IconButton>
+        );
+
         return (
           <MaterialToolbar style={style.toolbar}>
             <ToolbarGroup style={style.toolbarGroup}>
               <ToolbarTitle text="Ecoband" style={style.toolbarTitle} />
               <div style={style.buttons}>
-                <IconButton
-                style={style.iconButton}
-                tooltip="Rango de fechas"
-                tooltipPosition="bottom-center"
-                onClick={this.props.onDateRangeButtonClick}
-              >
-                <DateRangeIcon
-                  color={this.props.realTime ? this.props.secondaryColor : this.props.primaryColor}
-                />
-              </IconButton>
-              <IconButton
-                style={style.iconButton}
-                tooltip="Tiempo real"
-                tooltipPosition="bottom-center"
-                onClick={this.props.onRealTimeButtonClick}
-              >
-                <UpdateIcon
-                  color={this.props.realTime ? this.props.primaryColor : this.props.secondaryColor}
-                />
-              </IconButton>
+                {realTimeButton}
+                {dateRangeButton}
               </div>
             </ToolbarGroup>
           </MaterialToolbar>
