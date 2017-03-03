@@ -10,6 +10,78 @@ import { extendMoment } from 'moment-range';
 const moment = extendMoment(Moment);
 
 class Modals extends PureComponent {
+    getConnectingModal(style) {
+        return (
+          <Modal
+            show={this.props.values.spinner.show}
+            transitionSpeed={100}
+            closeOnOuterClick={false}
+            containerStyle={style.container}
+            style={style.modal}
+          >
+            <CircularProgress
+              color={this.props.primaryColor}
+              size={75}
+            />
+          </Modal>
+        );
+    }
+
+    getDisconnectedModal(style) {
+        return (
+          <Modal
+            show={this.props.values.connection.show}
+            transitionSpeed={100}
+            closeOnOuterClick={false}
+            containerStyle={style.container}
+            style={style.modal}
+          >
+            <Card style={style.card} className="card">
+              <CardHeader title="Sin conexión a internet" />
+            </Card>
+          </Modal>
+        );
+    }
+
+    getDateRangeModal(style) {
+        return (
+          <Modal
+            show={this.props.values.dateRange.show}
+            onClose={this.props.events.dateRange.onClose}
+            transitionSpeed={100}
+            closeOnOuterClick={false}
+            containerStyle={style.container}
+            style={style.modal}
+          >
+            <Card style={style.card} className="card">
+              <CardHeader title="Rango de fechas" />
+              <DateRangePicker
+                firstOfWeek={0}
+                numberOfCalendars={1}
+                selectionType="range"
+                showLegend={false}
+                onSelect={this.props.events.dateRange.onSelect}
+                value={this.props.values.dateRange.range}
+                maximumDate={moment().toDate()}
+                singleDateRange
+              />
+              <CardActions>
+                <FlatButton
+                  label="Cancelar"
+                  onClick={this.props.events.dateRange.onCancelButtonClick}
+                  hoverColor={this.props.primaryColor}
+                />
+                <FlatButton
+                  label="Aceptar"
+                  onClick={this.props.events.dateRange.onOkButtonClick}
+                  hoverColor={this.props.primaryColor}
+                />
+              </CardActions>
+            </Card>
+          </Modal>
+        );
+    }
+
     render() {
         const style = {
             modal: {
@@ -36,63 +108,9 @@ class Modals extends PureComponent {
 
         return (
           <div>
-            <Modal
-              show={this.props.values.spinner.show}
-              transitionSpeed={100}
-              closeOnOuterClick={false}
-              containerStyle={style.container}
-              style={style.modal}
-            >
-              <CircularProgress
-                color={this.props.primaryColor}
-                size={75}
-              />
-            </Modal>
-            <Modal
-              show={this.props.values.dateRange.show}
-              onClose={this.props.events.dateRange.onClose}
-              transitionSpeed={100}
-              closeOnOuterClick={false}
-              containerStyle={style.container}
-              style={style.modal}
-            >
-              <Card style={style.card} className="card">
-                <CardHeader title="Rango de fechas" />
-                <DateRangePicker
-                  firstOfWeek={0}
-                  numberOfCalendars={1}
-                  selectionType="range"
-                  showLegend={false}
-                  onSelect={this.props.events.dateRange.onSelect}
-                  value={this.props.values.dateRange.range}
-                  maximumDate={moment().toDate()}
-                  singleDateRange
-                />
-                <CardActions>
-                  <FlatButton
-                    label="Cancelar"
-                    onClick={this.props.events.dateRange.onCancelButtonClick}
-                    hoverColor={this.props.primaryColor}
-                  />
-                  <FlatButton
-                    label="Aceptar"
-                    onClick={this.props.events.dateRange.onOkButtonClick}
-                    hoverColor={this.props.primaryColor}
-                  />
-                </CardActions>
-              </Card>
-            </Modal>
-            <Modal
-              show={this.props.values.connection.show}
-              transitionSpeed={100}
-              closeOnOuterClick={false}
-              containerStyle={style.container}
-              style={style.modal}
-            >
-              <Card style={style.card} className="card">
-                <CardHeader title="Sin conexión a internet" />
-              </Card>
-            </Modal>
+            {this.props.values.connection ? this.getConnectingModal(style) : '' }
+            {this.props.values.connection ? this.getDisconnectedModal(style) : ''}
+            {this.props.values.dateRange ? this.getDateRangeModal(style) : ''}
           </div>
         );
     }
@@ -100,7 +118,7 @@ class Modals extends PureComponent {
 
 Modals.propTypes = {
     primaryColor: PropTypes.string.isRequired,
-    events: PropTypes.object.isRequired,
+    events: PropTypes.object,
     values: PropTypes.object
 };
 
