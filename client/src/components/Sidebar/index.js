@@ -24,8 +24,6 @@ class Sidebar extends PureComponent {
             }
         };
 
-        console.log(this.props.latestBeat);
-
         return (
           <div className="sidebar" style={style.sidebar}>
             <span className="counter counter-beats">
