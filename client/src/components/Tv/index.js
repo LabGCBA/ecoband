@@ -5,7 +5,6 @@ import Firebase from 'firebase';
 import Modals from '../Modals';
 import Moment from 'moment';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import Toolbar from '../Toolbar';
 import { extendMoment } from 'moment-range';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -55,21 +54,7 @@ const baseChartOptions = {
         }
     },
     toolbox: {
-        show: true,
-        feature: {
-            saveAsImage: {
-                show: true,
-                title: ' '
-            }
-        },
-        iconStyle: {
-            normal: {
-                borderColor: secondaryColor
-            },
-            emphasis: {
-                borderColor: primaryColor
-            }
-        }
+        show: false
     },
     grid: {
         show: false
@@ -127,8 +112,6 @@ class Home extends Component {
             },
             realTime: true,
             loading: false,
-            showDateRangeModal: false,
-            dateRange: null,
             connected: true
         };
     }
@@ -155,30 +138,6 @@ class Home extends Component {
             this.setState({ connected: true });
         }
         else if (this._connections > 0) this.setState({ connected: false });
-    }
-
-    onItems(records) {
-        const results = {};
-        let item;
-        let newItem;
-        let data;
-
-        for (const key in records) {
-            if (records.hasOwnProperty(key)) {
-                data = records[key];
-                item = data.value;
-                newItem = [new Date(data.timestamp), item];
-                data.type = data.type.trim();
-
-                if (this.state.dateRange.contains(newItem[0])) {
-                    if (!results[data.type]) results[data.type] = [];
-
-                    results[data.type].push(newItem);
-                }
-            }
-        }
-
-        this.setChartsData(results);
     }
 
     onItemAddedRealTime(record) {
@@ -226,58 +185,6 @@ class Home extends Component {
         this.onItemAddedRealTime(item);
     }
 
-    onRealTimeButtonClick() {
-        this.clearData();
-        this.setState({ realTime: true });
-
-        this._database.ref(`${this._device}/activity`)
-            .limitToLast(this._realTimeItems)
-            .on('child_added', this.onItemAddedRealTime.bind(this));
-    }
-
-    onDateRangeButtonClick() {
-        if (this.state.realTime) this.clearData();
-        this.setState({ realTime: false, showDateRangeModal: true });
-    }
-
-    onDateRangeModalClose() {
-    }
-
-    onDateRangeModalCancelButtonClick() {
-        this.setState({ showDateRangeModal: false });
-    }
-
-    onDateRangeModalOkButtonClick() {
-        const range = moment.range(this.state.dateRange.start, this.state.dateRange.end);
-
-        if (!range.end || !range.start) return;
-
-        this.setState({ showDateRangeModal: false, loading: true });
-
-        this._database.ref(`${this._device}/activity`)
-            .orderByChild('timestamp')
-            .startAt(range.start.valueOf())
-            .endAt(range.end.valueOf())
-            .once('value')
-            .then((records) => {
-                const results = records.val();
-
-                if (results) this.onItems(results);
-
-                this.setState({ loading: false });
-            });
-    }
-
-    onDateRangeSelected(range) {
-        if (this.state.dateRange || !this.state.dateRange || !(this.state.dateRange.isEqual(range))) {
-            range.end.add(23, 'hours');
-            range.end.add(59, 'minutes');
-            range.end.add(59, 'seconds');
-
-            this.setState({ dateRange: range });
-        }
-    }
-
     singleCurry(func, curriedParam) {
         return (closureParam) => {
             func.bind(this)(closureParam, curriedParam);
@@ -288,6 +195,7 @@ class Home extends Component {
         const customOptions = {
             title: {
                 text: 'Pulsaciones por minuto',
+                x: 'center',
                 textStyle
             },
             dataZoom: {
@@ -319,6 +227,7 @@ class Home extends Component {
         const customOptions = {
             title: {
                 text: 'Pasos por minuto',
+                x: 'center',
                 textStyle
             },
             dataZoom: {
@@ -383,7 +292,7 @@ class Home extends Component {
     render() {
         const style = {
             main: {
-                width: '75%',
+                width: '100%',
                 fontWeight: 'bold'
             },
             content: {
