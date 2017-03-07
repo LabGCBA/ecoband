@@ -17,6 +17,7 @@ namespace EcoBand {
             _eventHandlers = new HashSet<EventHandler<CharacteristicUpdatedEventArgs>>();
         }
 
+
         /**************************************************************************
 
             Static properties
@@ -29,6 +30,7 @@ namespace EcoBand {
             "MI1A",
             "MI1"
         };
+
         public static readonly List<string> MAC_ADDRESS_FILTER = new List<string>() {
             "88:0F:10",
             "C8:0F:10"
@@ -44,6 +46,7 @@ namespace EcoBand {
         public readonly IDevice Device;
         public event EventHandler<MeasureEventArgs> Steps;
         public event EventHandler<MeasureEventArgs> HeartRate;
+
 
         /**************************************************************************
 
@@ -93,6 +96,7 @@ namespace EcoBand {
         private readonly byte[] HR_CP_START_HEART_RATE_MANUAL = { 0x15, 0x2, 1 };
         private readonly byte[] HR_CP_STOP_HEART_RATE_MANUAL = { 0x15, 0x2, 0 };
 
+
         // Commands to send to UUID_CH_CONTROL_POINT
         private readonly byte[] CP_STOP_VIBRATION = { 0x0 };
         private readonly byte[] CP_START_VIBRATION_WITH_LED = { 0x1 };
@@ -114,6 +118,7 @@ namespace EcoBand {
         private readonly byte[] CP_REBOOT = { 0xC };
         private readonly byte[] CP_SET_THEME = { 0xE };
         private readonly byte[] CP_SET_WEAR_LOCATION = { 0xF };
+
 
         // Commands to send to UUID_CH_TEST
         private readonly byte[] TEST_REMOTE_DISCONNECT = { 0x1 };
@@ -152,12 +157,14 @@ namespace EcoBand {
         private readonly byte NOTIFICATION_PAIR_CANCELED = 0xef;
         private readonly byte NOTIFICATION_DEVICE_MALFUNCTION = 0xff;
 
+
         // Responses from UUID_CH_BATTERY
         private readonly byte BATTERY_NORMAL = 0;
         private readonly byte BATTERY_LOW = 1;
         private readonly byte BATTERY_CHARGING = 2;
         private readonly byte BATTERY_CHARGING_FULL = 3;
         private readonly byte BATTERY_CHARGE_OFF = 4;
+
 
         private static IService _mainService;
         private static HashSet<EventHandler<CharacteristicUpdatedEventArgs>> _eventHandlers;
@@ -256,6 +263,7 @@ namespace EcoBand {
                 address = ((BluetoothDevice) Device.NativeDevice).Address;
                 controlPoint = await service.GetCharacteristicAsync(UUID_CH_HEART_RATE_CONTROL_POINT);
                 stoppedMeasuring = await WriteToCharacteristic(HR_CP_STOP_HEART_RATE_CONTINUOUS, controlPoint);
+
                 return stoppedMeasuring;
             }
             catch (Exception ex) {
@@ -470,18 +478,6 @@ namespace EcoBand {
             }
         }
 
-        private int DecodeSteps(byte[] steps) {
-            return 0xff & steps[0] | (0xff & steps[1]) << 8;
-        }
-
-        private int DecodeHeartRate(byte[] heartRate) {
-            if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
-
-            Log.Debug("BAND", "##### Received invalid heart rate value");
-
-            return (heartRate[0] & 0xff);
-        }
-
         private async Task<bool> SubscribeToHeartRate(EventHandler<CharacteristicUpdatedEventArgs> callback) {
             IService service;
             ICharacteristic controlPoint;
@@ -504,6 +500,18 @@ namespace EcoBand {
                 return false;
             }
         }
+
+        private int DecodeHeartRate(byte[] heartRate) {
+            if (heartRate.Count() == 2 && heartRate[0] == 6) return (heartRate[1] & 0xff);
+
+            Log.Debug("BAND", "##### Received invalid heart rate value");
+
+            return (heartRate[0] & 0xff);
+        }
+
+        private int DecodeSteps(byte[] steps) {
+            return 0xff & steps[0] | (0xff & steps[1]) << 8;
+        }
     }
 
     public class MeasureEventArgs : EventArgs {
@@ -514,7 +522,9 @@ namespace EcoBand {
         }
 
         public int Measure {
-            get { return _measure; }
+            get { 
+                return _measure; 
+            }
         }
     }
 }
